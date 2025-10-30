@@ -8,67 +8,42 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; overflow: hidden; }
         #gameContainer { position: relative; width: 100vw; height: 100vh; }
-        
-        /* Canvas game ke peeche chalega */
         #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease; background-color: rgba(0, 0, 0, 0.6); }
+        .ui-screen.hidden { opacity: 0; pointer-events: none; }
         
-        /* UI Screens canvas ke upar aayenge */
-        .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, transform 0.5s ease; background-color: rgba(0, 0, 0, 0.6); }
-        .ui-screen.hidden { opacity: 0; pointer-events: none; transform: scale(1.1); }
-        
-        /* --- UI Styling (Pehle jaisa) --- */
-        #startScreen h1 { font-size: 13vw; margin-bottom: 15px; text-shadow: 4px 4px 8px #000; }
-        #topBar { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 12; }
-        .stats-box { background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 20px; font-size: 5vw; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.2); }
-        .stats-box img { height: 5vw; }
-        #difficultySelector { display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%; margin-top: 20px; }
-        .difficulty-btn { font-size: 5.5vw; padding: 20px; cursor: pointer; background: linear-gradient(145deg, #28a745, #218838); color: white; border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 6px #1e7e34; width: 280px; max-width: 70vw; transition: all 0.1s ease; }
+        /* --- UI STYLES --- */
+        #startScreen h1 { font-size: 13vw; margin-bottom: 25px; text-shadow: 4px 4px 8px #000; }
+        .difficulty-btn { font-size: 5.5vw; padding: 20px; cursor: pointer; background: linear-gradient(145deg, #28a745, #218838); color: white; border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 6px #1e7e34; width: 280px; max-width: 70vw; transition: all 0.1s ease; margin-top: 20px; }
         .difficulty-btn:active { box-shadow: 0 2px #1e7e34; transform: translateY(4px); }
-        #bottomBar { position: absolute; bottom: 30px; display: flex; gap: 20px; z-index: 12; }
-        .menu-btn { width: 70px; height: 70px; background-color: rgba(0,0,0,0.6); background-repeat: no-repeat; background-position: center; background-size: 50%; border: 2px solid white; border-radius: 50%; cursor: pointer; }
-
-        /* Game HUD */
-        #gameHud { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; z-index: 5; color: white; text-shadow: 2px 2px 4px #000; display: flex; justify-content: space-between; font-size: 6vw; font-weight: bold; }
+        
+        /* In-Game Controls */
+        .control-btn { position: absolute; bottom: 30px; width: 80px; height: 80px; background-color: rgba(0, 0, 0, 0.4); border-radius: 50%; color: white; font-size: 50px; display: flex; justify-content: center; align-items: center; user-select: none; z-index: 12; }
+        #leftButton { left: 30px; }
+        #rightButton { right: 30px; }
     </style>
 </head>
 <body>
     <div id="gameContainer">
-        <!-- The Canvas for high-quality graphics -->
         <canvas id="gameCanvas"></canvas>
 
-        <!-- UI Screens that overlay the canvas -->
         <div id="uiLayer">
             <div id="startScreen" class="ui-screen">
-                <!-- (Start Screen ka HTML pehle jaisa) -->
-                <div id="topBar">
-                    <div class="stats-box"><img src="coin_icon.png"><span id="totalCoinsDisplay">0</span></div>
-                    <div class="stats-box">HS: <span id="highScoreDisplay">0</span></div>
-                </div>
                 <h1>Car Racing</h1>
-                <div id="difficultySelector">
-                    <button class="difficulty-btn">Easy</button>
-                    <button class="difficulty-btn">Medium</button>
-                    <button class="difficulty-btn">Hard</button>
-                </div>
-                <div id="bottomBar">
-                    <button id="garageButton" class="menu-btn" style="background-image: url('garage_icon.png');"></button>
-                </div>
+                <button id="startButton" class="difficulty-btn">Start Game</button>
             </div>
 
-            <!-- In-Game HUD (Score, etc.) -->
-            <div id="gameHud" class="ui-screen hidden">
-                <div id="scoreDisplay">Score: 0</div>
-                <div id="coinsCollectedDisplay">Coins: 0</div>
+            <!-- In-Game Controls -->
+            <div id="gameControls" class="ui-screen hidden" style="background: transparent;">
+                <div id="leftButton" class="control-btn">◀</div>
+                <div id="rightButton" class="control-btn">▶</div>
             </div>
-            
-            <!-- (Garage, Settings, etc. screens will also go here) -->
         </div>
     </div>
 
     <script>
-    // === TOP LEVEL CANVAS ENGINE SETUP ===
+    // === CAR KO CANVAS PAR ADD KARNE KA CODE ===
 
-    // Canvas Setup
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
@@ -76,73 +51,108 @@
 
     // UI Elements
     const startScreen = document.getElementById('startScreen');
-    const gameHud = document.getElementById('gameHud');
+    const startButton = document.getElementById('startButton');
+    const gameControls = document.getElementById('gameControls');
+    const leftButton = document.getElementById('leftButton');
+    const rightButton = document.getElementById('rightButton');
 
     // Game State
     let isGameRunning = false;
+    let isMovingLeft = false;
+    let isMovingRight = false;
+
+    // Player Car Properties
+    const playerCar = {
+        x: 0, y: 0,
+        width: 0, height: 0,
+        speed: 7,
+        img: new Image()
+    };
+    
+    // --- Asset Loading ---
+    playerCar.img.src = 'player_car.png';
+    playerCar.img.onload = () => {
+        // Car ka size set karte hain screen ke hisaab se
+        const aspectRatio = playerCar.img.width / playerCar.img.height;
+        playerCar.width = canvas.width * 0.15; // Car screen ki 15% width legi
+        playerCar.height = playerCar.width / aspectRatio;
+        
+        // Initial Position
+        resetPlayer();
+    };
+
+    function resetPlayer() {
+        playerCar.x = canvas.width / 2 - playerCar.width / 2;
+        playerCar.y = canvas.height - playerCar.height - 20; // Screen ke neeche
+    }
 
     // --- The Main Game Loop ---
-    // Yahi wo function hai jo 1 second mein 60 baar chalega
     function gameLoop() {
         if (!isGameRunning) return;
-
-        // 1. Update game elements (car, obstacles)
         update();
-
-        // 2. Clear and Draw everything on canvas
         draw();
-
-        // 3. Request the next frame
         requestAnimationFrame(gameLoop);
     }
 
-    // --- Update Function ---
-    // Yahan saari cheezon ki position, speed, etc. update hogi
+    // --- Update Function (Movement Logic) ---
     function update() {
-        // TODO: Update car position based on input
-        // TODO: Update obstacles position
-        // TODO: Check for collisions
-        // TODO: Update score
+        const roadLeftBoundary = canvas.width * 0.2;
+        const roadRightBoundary = canvas.width * 0.8 - playerCar.width;
+
+        if (isMovingLeft && playerCar.x > roadLeftBoundary) {
+            playerCar.x -= playerCar.speed;
+        }
+        if (isMovingRight && playerCar.x < roadRightBoundary) {
+            playerCar.x += playerCar.speed;
+        }
     }
 
-    // --- Draw Function ---
-    // Yahan sab kuch canvas par banaya jayega
+    // --- Draw Function (Visuals) ---
     function draw() {
-        // Clear the entire canvas for the new frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw background/road
-        ctx.fillStyle = '#666'; // Simple grey road for now
+        // Draw Road
+        ctx.fillStyle = '#4a4a4a';
         ctx.fillRect(canvas.width * 0.2, 0, canvas.width * 0.6, canvas.height);
 
-        // TODO: Draw player car
-        // TODO: Draw obstacles
-        // TODO: Draw coins and power-ups
-        // TODO: Draw particle effects
+        // Draw Car
+        if (playerCar.img.complete) { // Check if image is loaded
+            ctx.drawImage(playerCar.img, playerCar.x, playerCar.y, playerCar.width, playerCar.height);
+        }
     }
 
     // --- Game Controls ---
     function startGame() {
         isGameRunning = true;
+        resetPlayer();
         startScreen.classList.add('hidden');
-        gameHud.classList.remove('hidden');
-        gameLoop(); // Start the loop!
+        gameControls.classList.remove('hidden');
+        gameLoop();
     }
 
-    function endGame() {
-        isGameRunning = false;
-        startScreen.classList.remove('hidden');
-        gameHud.classList.add('hidden');
-    }
+    // --- Event Listeners for Controls ---
+    startButton.addEventListener('click', startGame);
 
-    // --- Event Listeners ---
-    document.querySelector('.difficulty-btn').addEventListener('click', startGame);
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') isMovingLeft = true;
+        if (e.key === 'ArrowRight') isMovingRight = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') isMovingLeft = false;
+        if (e.key === 'ArrowRight') isMovingRight = false;
+    });
 
-    // --- Initial Load ---
-    // (Player preference loading logic from previous step would go here)
-    
-    // Welcome message for our developer :)
-    console.log("Top Level Canvas Engine is ready. Let's build a masterpiece!");
+    // Touch controls
+    leftButton.addEventListener('touchstart', () => isMovingLeft = true);
+    leftButton.addEventListener('touchend', () => isMovingLeft = false);
+    rightButton.addEventListener('touchstart', () => isMovingRight = true);
+    rightButton.addEventListener('touchend', () => isMovingRight = false);
+    // For Mouse Clicks on Desktop
+    leftButton.addEventListener('mousedown', () => isMovingLeft = true);
+    leftButton.addEventListener('mouseup', () => isMovingLeft = false);
+    rightButton.addEventListener('mousedown', () => isMovingRight = true);
+    rightButton.addEventListener('mouseup', () => isMovingRight = false);
 
     </script>
 </body>
