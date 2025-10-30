@@ -163,6 +163,46 @@
         const BASE_PLAYER_SPEED_MULTIPLIER = 0.0216;
         const BASE_ROAD_SPEED_MULTIPLIER = 0.006;
 
+        // --- COMMENTARY FEATURE KE LIYE NAYA CODE ---
+        const synth = window.speechSynthesis;
+        let commentaryEnabled = false;
+
+        function speak(text) {
+            if (commentaryEnabled && synth.speaking) {
+                console.log('Speech synthesis is already speaking.');
+                return;
+            }
+            if (commentaryEnabled) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'hi-IN'; // Hindi commentary
+                synth.speak(utterance);
+            }
+        }
+
+        const commentary = {
+            gameStart: [
+                "Chaliye, race shuru karte hain!",
+                "Get ready for the race!",
+                "Let's burn some rubber!",
+            ],
+            coinCollect: [
+                "Badhiya! Coin mil gaya!",
+                "Great! You got a coin!",
+                "Keep collecting!",
+            ],
+            gameOver: [
+                "Oh no! Game over.",
+                "Better luck next time.",
+                "You crashed!",
+            ]
+        };
+
+        function getRandomCommentary(type) {
+            const messages = commentary[type];
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+        // --- COMMENTARY FEATURE KA CODE KHATAM ---
+
         function setDimensions() {
             canvas.width = gameContainer.clientWidth; canvas.height = gameContainer.clientHeight;
             D_DIMS.roadLeftBoundary = canvas.width * 0.30; D_DIMS.roadRightBoundary = canvas.width * 0.70;
@@ -186,6 +226,7 @@
             playerCar.element.classList.remove('hidden');
             assets.carSound.currentTime = 0;
             assets.carSound.play();
+            speak(getRandomCommentary('gameStart'));
         }
         
         // init() FUNCTION KO UPDATE KIYA GAYA HAI
@@ -210,12 +251,17 @@
             const handleTouchStart = (e) => e.preventDefault();
             leftButton.addEventListener('mousedown', () => isMovingLeft = true); leftButton.addEventListener('mouseup', () => isMovingLeft = false); leftButton.addEventListener('mouseleave', () => isMovingLeft = false); leftButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingLeft = true; }); leftButton.addEventListener('touchend', () => isMovingLeft = false);
             rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', () => isMovingRight = false); rightButton.addEventListener('mouseleave', () => isMovingRight = false); rightButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingRight = true; }); rightButton.addEventListener('touchend', () => isMovingRight = false);
-            permissionScreen.addEventListener('click', () => { permissionScreen.classList.add('hidden'); showStartScreen(); gameLoop(); }, { once: true });
+            permissionScreen.addEventListener('click', () => { 
+                permissionScreen.classList.add('hidden'); 
+                commentaryEnabled = true; // Enable commentary after user interaction
+                showStartScreen(); 
+                gameLoop(); 
+            }, { once: true });
         }
         
         loadAssets = function(callback) { let assetsLoaded = 0; const numAssets = 5; function assetLoaded() { if (++assetsLoaded === numAssets) callback(); } assets.road.src = assetSources.road; assets.road.onload = assetLoaded; assets.hitSound.src = assetSources.hitSound; assets.hitSound.oncanplaythrough = assetLoaded; assets.carSound.src = assetSources.carSound; assets.carSound.loop = true; assets.carSound.oncanplaythrough = assetLoaded; assets.collectSound.src = assetSources.collectSound; assets.collectSound.oncanplaythrough = assetLoaded; assets.openingSound.src = assetSources.openingSound; assets.openingSound.oncanplaythrough = assetLoaded; }
         createScorePopup = function(x, y) { const popup = document.createElement('div'); popup.innerText = '+5'; popup.className = 'score-popup'; popup.style.left = `${x}px`; popup.style.top = `${y}px`; popupContainer.appendChild(popup); setTimeout(() => { popup.remove(); }, 1000); }
-        update = function() { road.y1 += D_DIMS.roadSpeed; road.y2 += D_DIMS.roadSpeed; if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height; if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height; if (gameState !== 'playing') return; if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed; if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed; playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); playerCar.element.style.left = `${playerCar.x}px`; obstacleSpawnTimer++; if (obstacleSpawnTimer > obstacleSpawnInterval) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > coinSpawnInterval) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.coinSpeed)); coinSpawnTimer = 0; } for (let i = coins.length - 1; i >= 0; i--) { const coin = coins[i]; coin.y += coin.speed; coin.element.style.top = `${coin.y}px`; if (checkCollision(playerCar, coin)) { score += 5; assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(coin.x, coin.y); gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); } else if (coin.y > canvas.height) { gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); } } for (let i = obstacles.length - 1; i >= 0; i--) { const obstacle = obstacles[i]; obstacle.y += obstacle.speed; obstacle.element.style.top = `${obstacle.y}px`; if (checkCollision(playerCar, obstacle)) { assets.carSound.pause(); assets.hitSound.currentTime = 0; assets.hitSound.play(); gameState = 'gameOver'; setTimeout(showStartScreen, 2000); return; } else if (obstacle.y > canvas.height) { gameObjectContainer.removeChild(obstacle.element); obstacles.splice(i, 1); } } }
+        update = function() { road.y1 += D_DIMS.roadSpeed; road.y2 += D_DIMS.roadSpeed; if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height; if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height; if (gameState !== 'playing') return; if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed; if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed; playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); playerCar.element.style.left = `${playerCar.x}px`; obstacleSpawnTimer++; if (obstacleSpawnTimer > obstacleSpawnInterval) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > coinSpawnInterval) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.coinSpeed)); coinSpawnTimer = 0; } for (let i = coins.length - 1; i >= 0; i--) { const coin = coins[i]; coin.y += coin.speed; coin.element.style.top = `${coin.y}px`; if (checkCollision(playerCar, coin)) { score += 5; assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(coin.x, coin.y); gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); speak(getRandomCommentary('coinCollect')); } else if (coin.y > canvas.height) { gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); } } for (let i = obstacles.length - 1; i >= 0; i--) { const obstacle = obstacles[i]; obstacle.y += obstacle.speed; obstacle.element.style.top = `${obstacle.y}px`; if (checkCollision(playerCar, obstacle)) { assets.carSound.pause(); assets.hitSound.currentTime = 0; assets.hitSound.play(); gameState = 'gameOver'; speak(getRandomCommentary('gameOver')); setTimeout(showStartScreen, 2000); return; } else if (obstacle.y > canvas.height) { gameObjectContainer.removeChild(obstacle.element); obstacles.splice(i, 1); } } }
         draw = function() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.filter = `saturate(130%) brightness(110%) contrast(120%)`; ctx.drawImage(assets.road, 0, road.y1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, road.y2, canvas.width, canvas.height); ctx.filter = 'none'; if (gameState !== 'menu') { draw3DScoreBox(score); } }
         gameLoop = function() { update(); draw(); if (gameState === 'gameOver') { drawGameOver(); } requestAnimationFrame(gameLoop); }
         
