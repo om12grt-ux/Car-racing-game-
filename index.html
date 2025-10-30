@@ -3,30 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Car Racing Game - Top Level</title>
+    <title>Car Racing - Premium Edition</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; overflow: hidden; }
         #gameContainer { position: relative; width: 100vw; height: 100vh; }
         #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        
-        .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, transform 0.5s ease; background-color: rgba(0, 0, 0, 0.6); }
+        .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.4s ease, transform 0.4s ease; background-color: rgba(0, 0, 0, 0.6); }
         .ui-screen.hidden { opacity: 0; pointer-events: none; transform: scale(1.1); }
-        
+        .panel { background-color: rgba(20, 20, 20, 0.85); backdrop-filter: blur(8px); padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 0 25px rgba(0,0,0,0.7); border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
+        .panel h2 { text-align: center; font-size: 8vw; margin-bottom: 25px; color: #eee; }
+        .close-btn { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; background: url('close_icon.png') no-repeat center center; background-size: 60%; cursor: pointer; z-index: 15; border: 1px solid white; border-radius: 50%; background-color: rgba(0,0,0,0.5);}
+
         #startScreen h1 { font-size: 13vw; margin-bottom: 15px; text-shadow: 4px 4px 8px #000; }
         #topBar { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 12; }
         .stats-box { background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 20px; font-size: 5vw; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.2); }
         .stats-box img { height: 5vw; }
         #difficultySelector { display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%; margin-top: 20px; }
-        .difficulty-btn { font-size: 5.5vw; padding: 20px; cursor: pointer; background: linear-gradient(145deg, #28a745, #218838); color: white; border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 6px #1e7e34; width: 280px; max-width: 70vw; }
+        .difficulty-btn { font-size: 5.5vw; padding: 20px; cursor: pointer; background: linear-gradient(145deg, #28a745, #218838); color: white; border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 6px #1e7e34; width: 280px; max-width: 70vw; transition: all 0.1s ease; }
+        .difficulty-btn:active { box-shadow: 0 2px #1e7e34; transform: translateY(4px); }
         #garageButton { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background-color: rgba(0,0,0,0.6); background-image: url('garage_icon.png'); background-repeat: no-repeat; background-position: center; background-size: 50%; border: 2px solid white; border-radius: 50%; cursor: pointer; }
-
+        #carList { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; max-height: 60vh; overflow-y: auto; padding: 10px; }
+        .car-item { background: rgba(0,0,0,0.3); border: 4px solid #555; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
+        .car-item.selected { border-color: #28a745; box-shadow: 0 0 20px #28a745; }
+        .car-item.locked { background: rgba(0,0,0,0.7); }
+        .car-item img { width: 100%; }
+        .car-item .car-name { font-size: 4vw; margin-top: 10px; }
+        .lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7) url('lock_icon.png') no-repeat center 30%; background-size: 40%; border-radius: 10px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 10px; }
+        .unlock-btn { background: #28a745; border: none; border-radius: 10px; color: white; padding: 8px 12px; font-size: 3.5vw; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .unlock-btn img { height: 3.5vw; }
         #gameOverScreen { text-align: center; }
         #gameOverScreen h2 { font-size: 15vw; color: #dc3545; margin-bottom: 10px; }
         #gameOverScreen p { font-size: 7vw; margin-bottom: 20px; }
-        
         #gameHud { display: flex; justify-content: space-between; width: 100%; position: absolute; top: 20px; padding: 0 20px; color: white; font-size: 6vw; font-weight: bold; text-shadow: 2px 2px 4px #000; z-index: 5; pointer-events: none; }
-        .control-btn { position: absolute; bottom: 30px; width: 80px; height: 80px; background-color: rgba(0, 0, 0, 0.4); border-radius: 50%; color: white; font-size: 50px; display: flex; justify-content: center; align-items: center; user-select: none; z-index: 12; }
+        #gameHud img { height: 5vw; vertical-align: middle; }
+        .control-btn { position: absolute; bottom: 30px; width: 80px; height: 80px; background-color: rgba(255, 255, 255, 0.2); border-radius: 50%; z-index: 12; color: white; font-size: 50px; text-align: center; line-height: 80px; user-select: none;}
         #leftButton { left: 30px; }
         #rightButton { right: 30px; }
     </style>
@@ -34,7 +45,6 @@
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
-
         <div id="uiLayer">
             <div id="startScreen" class="ui-screen">
                 <div id="topBar">
@@ -45,23 +55,33 @@
                 <div id="difficultySelector">
                     <button class="difficulty-btn" data-speed="1.0">Easy</button>
                     <button class="difficulty-btn" data-speed="1.2">Medium</button>
-                    <button class="difficulty-btn" data-speed="1.4">Hard</button>
+                    <button class="difficulty-btn" data-speed="1.5">Hard</button>
                 </div>
                 <button id="garageButton"></button>
             </div>
 
+            <div id="garageScreen" class="ui-screen hidden">
+                <div class="panel">
+                    <div id="closeGarageButton" class="close-btn"></div>
+                    <h2>Garage</h2>
+                    <div id="carList"></div>
+                </div>
+            </div>
+
             <div id="gameOverScreen" class="ui-screen hidden">
-                <h2>Game Over</h2>
-                <p>Your Score: <span id="finalScore">0</span></p>
-                <button id="restartButton" class="difficulty-btn">Play Again</button>
+                <div class="panel">
+                    <h2>Game Over</h2>
+                    <p>Score: <span id="finalScore">0</span></p>
+                    <p>Coins: <span id="finalCoins">0</span></p>
+                    <button id="restartButton" class="difficulty-btn">Play Again</button>
+                </div>
             </div>
 
             <div id="gameHud" class="hidden">
                 <span>Score: <span id="scoreDisplay">0</span></span>
-                <span><img src="coin_icon.png" style="height: 5vw; vertical-align: middle;"> <span id="coinsCollectedDisplay">0</span></span>
+                <span><img src="coin_icon.png"> <span id="coinsCollectedDisplay">0</span></span>
             </div>
-
-            <div id="gameControls" class="hidden" style="background: transparent;">
+            <div id="gameControls" class="hidden">
                 <div id="leftButton" class="control-btn">◀</div>
                 <div id="rightButton" class="control-btn">▶</div>
             </div>
@@ -69,59 +89,67 @@
     </div>
 
     <script>
-    // === TOP LEVEL COMPLETE GAME ENGINE ===
-
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // --- UI ELEMENTS ---
     const ui = {
         startScreen: document.getElementById('startScreen'),
+        garageScreen: document.getElementById('garageScreen'),
         gameOverScreen: document.getElementById('gameOverScreen'),
-        finalScore: document.getElementById('finalScore'),
-        restartButton: document.getElementById('restartButton'),
-        difficultyButtons: document.querySelectorAll('.difficulty-btn'),
         hud: document.getElementById('gameHud'),
+        gameControls: document.getElementById('gameControls'),
+        totalCoinsDisplay: document.getElementById('totalCoinsDisplay'),
+        highScoreDisplay: document.getElementById('highScoreDisplay'),
         scoreDisplay: document.getElementById('scoreDisplay'),
         coinsCollectedDisplay: document.getElementById('coinsCollectedDisplay'),
-        gameControls: document.getElementById('gameControls')
+        finalScore: document.getElementById('finalScore'),
+        finalCoins: document.getElementById('finalCoins'),
+        garageButton: document.getElementById('garageButton'),
+        closeGarageButton: document.getElementById('closeGarageButton'),
+        carList: document.getElementById('carList'),
+        difficultyButtons: document.querySelectorAll('.difficulty-btn'),
+        restartButton: document.getElementById('restartButton'),
+        leftButton: document.getElementById('leftButton'),
+        rightButton: document.getElementById('rightButton'),
     };
-    
-    // --- GAME STATE & SETTINGS ---
-    let gameState = 'menu';
-    let gameSpeed = 1.0;
-    let score = 0;
-    let coinsCollected = 0;
-    let roadSpeed = 5;
 
-    // --- PLAYER ---
-    const player = {
-        x: canvas.width / 2, y: canvas.height - 150,
-        width: 50, height: 100,
-        speed: 7, dx: 0,
-        img: new Image()
+    const carData = {
+        'default': { name: 'Starter', price: 0, img: 'player_car.png' },
+        'sport':   { name: 'Viper', price: 50, img: 'sport_car.png' },
+        'muscle':  { name: 'Beast', price: 100, img: 'muscle_car.png' }
     };
-    player.img.src = 'player_car.png'; // Default car
 
-    // --- ASSETS & OBJECTS ---
-    const roadImg = new Image();
-    roadImg.src = 'road.jpg';
-    let roadY1 = 0;
-    let roadY2 = -canvas.height;
+    let preferences = {
+        highScore: 0, totalCoins: 0,
+        selectedCar: 'default', unlockedCars: ['default']
+    };
 
-    let obstacles = [];
-    let coins = [];
-    const obstacleImages = ['obstacle1.png', 'obstacle2.png', 'obstacle3.png'].map(src => {
-        const img = new Image();
-        img.src = src;
-        return img;
-    });
-    const coinImg = new Image();
-    coinImg.src = 'coin.gif';
+    let gameState = 'menu', gameSpeed = 1.0, score = 0, coinsCollected = 0, roadSpeed = 5;
+    const player = { x: 0, y: 0, width: 50, height: 100, speed: 7, dx: 0, img: null };
+    let roadY1 = 0, roadY2 = -canvas.height;
+    let obstacles = [], coins = [];
+    const assets = {};
 
-    // --- GAME LOOP ---
+    function loadAssets() {
+        assets.road = new Image(); assets.road.src = 'road.jpg';
+        for (const id in carData) { assets[id] = new Image(); assets[id].src = carData[id].img; }
+        assets.obstacles = ['obstacle1.png', 'obstacle2.png', 'obstacle3.png'].map(src => { const img = new Image(); img.src = src; return img; });
+        assets.coin = new Image(); assets.coin.src = 'coin.gif';
+    }
+
+    function loadPreferences() {
+        const saved = JSON.parse(localStorage.getItem('carGamePremiumPrefsV2')) || {};
+        preferences = { ...preferences, ...saved };
+        updateUI();
+    }
+    function savePreferences() { localStorage.setItem('carGamePremiumPrefsV2', JSON.stringify(preferences)); }
+    function updateUI() {
+        ui.totalCoinsDisplay.textContent = preferences.totalCoins;
+        ui.highScoreDisplay.textContent = preferences.highScore;
+    }
+
     function gameLoop() {
         if (gameState !== 'playing') return;
         update();
@@ -129,170 +157,123 @@
         requestAnimationFrame(gameLoop);
     }
 
-    // --- UPDATE LOGIC ---
     function update() {
-        // Road scroll
-        roadY1 += roadSpeed * gameSpeed;
-        roadY2 += roadSpeed * gameSpeed;
+        roadY1 += roadSpeed * gameSpeed; roadY2 += roadSpeed * gameSpeed;
         if (roadY1 >= canvas.height) roadY1 = roadY2 - canvas.height;
         if (roadY2 >= canvas.height) roadY2 = roadY1 - canvas.height;
-        
-        // Player movement
         player.x += player.dx;
-        const roadLeftBoundary = canvas.width * 0.2;
-        const roadRightBoundary = canvas.width * 0.8 - player.width;
+        const roadLeftBoundary = canvas.width * 0.2, roadRightBoundary = canvas.width * 0.8 - player.width;
         if (player.x < roadLeftBoundary) player.x = roadLeftBoundary;
         if (player.x > roadRightBoundary) player.x = roadRightBoundary;
-
-        // Update obstacles
-        obstacles.forEach(obs => obs.y += roadSpeed * gameSpeed * 1.2);
-        obstacles = obstacles.filter(obs => obs.y < canvas.height); // Remove off-screen
-        
-        // Update coins
+        obstacles.forEach(obs => obs.y += roadSpeed * gameSpeed * 1.1);
+        obstacles = obstacles.filter(obs => obs.y < canvas.height);
         coins.forEach(coin => coin.y += roadSpeed * gameSpeed);
         coins = coins.filter(coin => coin.y < canvas.height);
-        
-        // Spawning
-        if (Math.random() < 0.02 * gameSpeed) spawnObstacle();
-        if (Math.random() < 0.015 * gameSpeed) spawnCoin();
-
-        // Collisions
+        if (Math.random() < 0.025 * gameSpeed) spawnObstacle();
+        if (Math.random() < 0.02 * gameSpeed) spawnCoin();
         checkCollisions();
-
-        // Update Score
         score += Math.floor(1 * gameSpeed);
         ui.scoreDisplay.textContent = score;
         ui.coinsCollectedDisplay.textContent = coinsCollected;
     }
-    
-    // --- DRAW LOGIC ---
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(roadImg, 0, roadY1, canvas.width, canvas.height);
-        ctx.drawImage(roadImg, 0, roadY2, canvas.width, canvas.height);
-
+        if (assets.road.complete) { ctx.drawImage(assets.road, 0, roadY1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, roadY2, canvas.width, canvas.height); }
         obstacles.forEach(obs => ctx.drawImage(obs.img, obs.x, obs.y, obs.width, obs.height));
-        coins.forEach(coin => ctx.drawImage(coinImg, coin.x, coin.y, coin.width, coin.height));
-        ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
+        coins.forEach(coin => ctx.drawImage(assets.coin, coin.x, coin.y, coin.width, coin.height));
+        if (player.img && player.img.complete) ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
     }
 
-    // --- HELPER FUNCTIONS ---
     function spawnObstacle() {
-        const obsWidth = player.width * 0.9;
-        const obsHeight = player.height * 0.9;
-        const roadWidth = canvas.width * 0.6;
-        const roadLeft = canvas.width * 0.2;
+        const obsWidth = player.width * 0.95;
+        const obsHeight = player.height;
+        const roadWidth = canvas.width * 0.6; const roadLeft = canvas.width * 0.2;
         const x = Math.random() * (roadWidth - obsWidth) + roadLeft;
-        obstacles.push({
-            x, y: -obsHeight, width: obsWidth, height: obsHeight,
-            img: obstacleImages[Math.floor(Math.random() * obstacleImages.length)]
-        });
+        obstacles.push({ x, y: -obsHeight, width: obsWidth, height: obsHeight, img: assets.obstacles[Math.floor(Math.random() * assets.obstacles.length)] });
     }
-
     function spawnCoin() {
         const coinSize = 40;
-        const roadWidth = canvas.width * 0.6;
-        const roadLeft = canvas.width * 0.2;
+        const roadWidth = canvas.width * 0.6; const roadLeft = canvas.width * 0.2;
         const x = Math.random() * (roadWidth - coinSize) + roadLeft;
         coins.push({ x, y: -coinSize, width: coinSize, height: coinSize });
     }
-    
     function checkCollisions() {
-        // Player vs Obstacles
-        obstacles.forEach(obs => {
-            if (isColliding(player, obs)) {
-                endGame();
-            }
-        });
-        // Player vs Coins
-        coins.forEach((coin, index) => {
-            if (isColliding(player, coin)) {
-                coins.splice(index, 1);
-                coinsCollected++;
-            }
-        });
+        for (const obs of obstacles) if (isColliding(player, obs)) return endGame();
+        for (let i = coins.length - 1; i >= 0; i--) { if (isColliding(player, coins[i])) { coins.splice(i, 1); coinsCollected++; } }
     }
+    function isColliding(r1, r2) { return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.y + r1.height > r2.y; }
 
-    function isColliding(rect1, rect2) {
-        return rect1.x < rect2.x + rect2.width &&
-               rect1.x + rect1.width > rect2.x &&
-               rect1.y < rect2.y + rect2.height &&
-               rect1.y + rect1.height > rect2.y;
-    }
-
-    // --- GAME CONTROL FUNCTIONS ---
     function startGame(speed) {
-        gameSpeed = speed;
-        gameState = 'playing';
-        score = 0;
-        coinsCollected = 0;
-        obstacles = [];
-        coins = [];
-        
-        // Player car setup
-        const aspectRatio = player.img.naturalWidth / player.img.naturalHeight;
-        player.width = canvas.width * 0.15;
-        player.height = player.width / aspectRatio;
-        player.x = canvas.width / 2 - player.width / 2;
-        player.y = canvas.height - player.height - 30;
-
-        ui.startScreen.classList.add('hidden');
-        ui.gameOverScreen.classList.add('hidden');
-        ui.hud.classList.remove('hidden');
-        ui.gameControls.classList.remove('hidden');
-        
+        gameSpeed = speed; gameState = 'playing'; score = 0; coinsCollected = 0; obstacles = []; coins = [];
+        player.img = assets[preferences.selectedCar];
+        const aspectRatio = player.img.naturalWidth > 0 ? player.img.naturalWidth / player.img.naturalHeight : 0.5;
+        player.width = canvas.width * 0.14; player.height = player.width / aspectRatio;
+        player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height - player.height - 30;
+        ui.startScreen.classList.add('hidden'); ui.garageScreen.classList.add('hidden'); ui.gameOverScreen.classList.add('hidden');
+        ui.hud.classList.remove('hidden'); ui.gameControls.classList.remove('hidden');
         gameLoop();
     }
 
     function endGame() {
         gameState = 'menu';
-        ui.finalScore.textContent = score;
-        ui.hud.classList.add('hidden');
-        ui.gameControls.classList.add('hidden');
+        if (score > preferences.highScore) preferences.highScore = score;
+        preferences.totalCoins += coinsCollected;
+        savePreferences(); updateUI();
+        ui.finalScore.textContent = score; ui.finalCoins.textContent = coinsCollected;
+        ui.hud.classList.add('hidden'); ui.gameControls.classList.add('hidden');
         ui.gameOverScreen.classList.remove('hidden');
-        
-        // TODO: Save high score and coins
     }
 
-    // --- EVENT LISTENERS ---
-    ui.difficultyButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            startGame(parseFloat(btn.dataset.speed));
-        });
-    });
-    ui.restartButton.addEventListener('click', () => {
-        ui.gameOverScreen.classList.add('hidden');
-        ui.startScreen.classList.remove('hidden');
-    });
-
-    // Controls
-    const leftButton = document.getElementById('leftButton');
-    const rightButton = document.getElementById('rightButton');
-
-    function handleMoveStart(isLeft) {
-        player.dx = isLeft ? -player.speed : player.speed;
-    }
-    function handleMoveEnd() {
-        player.dx = 0;
+    function openGarage() { renderGarage(); ui.garageScreen.classList.remove('hidden'); }
+    function closeGarage() { ui.garageScreen.classList.add('hidden'); }
+    function renderGarage() {
+        ui.carList.innerHTML = '';
+        for (const carId in carData) {
+            const car = carData[carId]; const item = document.createElement('div');
+            item.className = 'car-item'; item.dataset.carId = carId;
+            let content = `<img src="${carData[carId].img}"><div class="car-name">${car.name}</div>`;
+            if (preferences.unlockedCars.includes(carId)) {
+                if (preferences.selectedCar === carId) item.classList.add('selected');
+            } else {
+                item.classList.add('locked');
+                content += `<div class="lock-overlay"><button class="unlock-btn"><img src="coin_icon.png"><span>${car.price}</span></button></div>`;
+            }
+            item.innerHTML = content; ui.carList.appendChild(item);
+        }
     }
 
-    leftButton.addEventListener('mousedown', () => handleMoveStart(true));
-    leftButton.addEventListener('mouseup', handleMoveEnd);
-    leftButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleMoveStart(true); });
-    leftButton.addEventListener('touchend', handleMoveEnd);
-    rightButton.addEventListener('mousedown', () => handleMoveStart(false));
-    rightButton.addEventListener('mouseup', handleMoveEnd);
-    rightButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleMoveStart(false); });
-    rightButton.addEventListener('touchend', handleMoveEnd);
-    
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') handleMoveStart(true);
-        if (e.key === 'ArrowRight') handleMoveStart(false);
-    });
-    window.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') handleMoveEnd();
+    ui.difficultyButtons.forEach(btn => btn.addEventListener('click', () => startGame(parseFloat(btn.dataset.speed))));
+    ui.restartButton.addEventListener('click', () => { ui.gameOverScreen.classList.add('hidden'); ui.startScreen.classList.remove('hidden'); });
+    ui.garageButton.addEventListener('click', openGarage);
+    ui.closeGarageButton.addEventListener('click', closeGarage);
+    ui.carList.addEventListener('click', (e) => {
+        const item = e.target.closest('.car-item'); if (!item) return;
+        const carId = item.dataset.carId;
+        if (item.classList.contains('locked')) {
+            const carPrice = carData[carId].price;
+            if (preferences.totalCoins >= carPrice) {
+                preferences.totalCoins -= carPrice; preferences.unlockedCars.push(carId); preferences.selectedCar = carId;
+                savePreferences(); updateUI(); renderGarage();
+            } else { alert("Not enough coins!"); }
+        } else { preferences.selectedCar = carId; savePreferences(); renderGarage(); }
     });
 
+    function handleMoveStart(isLeft) { if (gameState === 'playing') player.dx = isLeft ? -player.speed : player.speed; }
+    function handleMoveEnd() { if (player.dx !== 0) player.dx = 0; }
+    ui.leftButton.addEventListener('mousedown', () => handleMoveStart(true));
+    ui.leftButton.addEventListener('mouseup', handleMoveEnd);
+    ui.leftButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleMoveStart(true); });
+    ui.leftButton.addEventListener('touchend', handleMoveEnd);
+    ui.rightButton.addEventListener('mousedown', () => handleMoveStart(false));
+    ui.rightButton.addEventListener('mouseup', handleMoveEnd);
+    ui.rightButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleMoveStart(false); });
+    ui.rightButton.addEventListener('touchend', handleMoveEnd);
+    window.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'a') handleMoveStart(true); if (e.key === 'ArrowRight' || e.key === 'd') handleMoveStart(false); });
+    window.addEventListener('keyup', (e) => { if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'ArrowRight' || e.key === 'd') handleMoveEnd(); });
+
+    loadAssets();
+    loadPreferences();
     </script>
 </body>
 </html>
