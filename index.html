@@ -6,9 +6,7 @@
     <title>Car Racing Game</title>
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --dark-grey: #222;
-            --light-grey: #333;
+            --primary-color: #4CAF50; --dark-grey: #222; --light-grey: #333;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #111; overflow: hidden; font-family: 'Arial', sans-serif; color: white; }
@@ -20,17 +18,20 @@
         #leftButton { left: 20px; }
         #rightButton { right: 20px; }
 
-        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        #startScreen h1 { font-size: 10vw; margin-bottom: 40px; text-shadow: 3px 3px 5px #000; }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        
+        #startScreen h1 { font-size: 10vw; margin-bottom: 20px; text-shadow: 3px 3px 5px #000; }
+        #highScoreDisplay { font-size: 4vw; margin-bottom: 30px; color: #ffd700; }
         
         #difficultySelector { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .difficulty-btn { font-size: 5vw; padding: 20px 50px; cursor: pointer; background-color: var(--primary-color); border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 5px #666; animation: pulse 2s infinite; width: 250px; max-width: 60vw; }
-        .difficulty-btn:active { box-shadow: 0 2px #666; transform: translateY(3px); animation: none; }
+        .btn { font-size: 5vw; padding: 20px 50px; cursor: pointer; background-color: var(--primary-color); border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 5px #666; width: 250px; max-width: 60vw; }
+        .btn:active { box-shadow: 0 2px #666; transform: translateY(3px); }
+        .difficulty-btn { animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         #settingsIcon { position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; cursor: pointer; z-index: 11; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7)); }
         
-        #settingsScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 20; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transform: scale(0); transition: transform 0.3s ease-in-out; }
+        #settingsScreen { background-color: rgba(0, 0, 0, 0.85); z-index: 20; backdrop-filter: blur(5px); transform: scale(0); transition: transform 0.3s ease-in-out; }
         #settingsScreen.active { transform: scale(1); }
         #settingsBox { background-color: var(--dark-grey); padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; text-align: center; border: 2px solid var(--light-grey); }
         .settings-title { font-size: 6vw; margin-bottom: 20px; color: var(--primary-color); }
@@ -42,32 +43,45 @@
         .char-btn img, .car-btn img { display: block; width: 80px; height: 80px; object-fit: cover; border-radius: 10px; }
         .char-btn.selected, .car-btn.selected { border-color: var(--primary-color); transform: scale(1.1); box-shadow: 0 0 15px var(--primary-color); }
         
-        #saveBtn { font-size: 5vw; padding: 15px 40px; cursor: pointer; background-color: var(--primary-color); border: none; border-radius: 15px; font-weight: bold; width: 100%; }
+        #saveBtn { width: 100%; }
+
+        #gameOverScreen { z-index: 15; background-color: rgba(0,0,0,0.8); }
+        #gameOverBox { text-align: center; }
+        #gameOverBox h1 { font-size: 12vw; color: red; margin-bottom: 20px; }
+        #gameOverBox p { font-size: 6vw; margin-bottom: 30px; }
 
         .hidden { display: none !important; }
         .game-object { position: absolute; filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.5)); }
         #playerCarElement { z-index: 4; }
-        #permissionScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 30; cursor: pointer; }
-        #permissionScreen h2 { font-size: 28px; text-align: center; }
-        
+        #preloader { background-color: #000; z-index: 100; font-size: 8vw; }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameObjectContainer"><img id="playerCarElement" class="game-object hidden"></div>
-        <img src="settings_icon.png.png" id="settingsIcon">
+        <img src="settings_icon.png" id="settingsIcon">
 
-        <div id="startScreen">
+        <div id="startScreen" class="screen">
             <h1>Car Racing</h1>
+            <p id="highScoreDisplay">High Score: 0</p>
             <div id="difficultySelector">
-                <button id="easyButton" class="difficulty-btn">Easy</button>
-                <button id="mediumButton" class="difficulty-btn">Medium</button>
-                <button id="hardButton" class="difficulty-btn">Hard</button>
+                <button id="easyButton" class="btn difficulty-btn">Easy</button>
+                <button id="mediumButton" class="btn difficulty-btn">Medium</button>
+                <button id="hardButton" class="btn difficulty-btn">Hard</button>
+            </div>
+        </div>
+        
+        <div id="gameOverScreen" class="screen hidden">
+            <div id="gameOverBox">
+                <h1>GAME OVER</h1>
+                <p id="finalScore">Score: 0</p>
+                <p id="gameOverHighScore">High Score: 0</p>
+                <button id="playAgainBtn" class="btn">Play Again</button>
             </div>
         </div>
 
-        <div id="settingsScreen">
+        <div id="settingsScreen" class="screen">
             <div id="settingsBox">
                 <h2 class="settings-title">Settings</h2>
                 <div class="selection-container">
@@ -92,66 +106,91 @@
                         <button class="car-btn" data-car="female_car_4.png"><img src="female_car_4.png"></button>
                     </div>
                 </div>
-                <button id="saveBtn">Save & Close</button>
+                <button id="saveBtn" class="btn">Save & Close</button>
             </div>
         </div>
 
         <div id="leftButton" class="control-btn hidden">◀</div>
         <div id="rightButton" class="control-btn hidden">▶</div>
-        <div id="permissionScreen"><h2>Tap to Start</h2></div>
+        <div id="preloader" class="screen"><h2>Loading Assets...</h2></div>
     </div>
 
     <script>
+    // --- DOM Elements ---
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
     const gameContainer = document.getElementById('gameContainer');
     const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton');
-    const startScreen = document.getElementById('startScreen'), permissionScreen = document.getElementById('permissionScreen');
+    const startScreen = document.getElementById('startScreen'), gameOverScreen = document.getElementById('gameOverScreen');
     const gameObjectContainer = document.getElementById('gameObjectContainer');
     const playerCarElement = document.getElementById('playerCarElement');
     const settingsIcon = document.getElementById('settingsIcon'), settingsScreen = document.getElementById('settingsScreen');
+    const preloader = document.getElementById('preloader');
     
-    let gameState = 'menu', score = 0, isMovingLeft = false, isMovingRight = false, difficultyMultiplier = 1.0;
+    // --- Game State & Variables ---
+    let gameState = 'loading', score = 0, highScore = 0;
+    let isMovingLeft = false, isMovingRight = false, difficultyMultiplier = 1.0;
     
-    // --- SETTINGS AND AUDIO LOGIC ---
+    // --- Settings & Audio ---
     let currentSettings = { character: 'male', car: 'male_car_1.png' };
     let tempSettings = { ...currentSettings };
+    const audioClips = {}; // Will be populated by preloader
 
-    const audioClips = {
-        hit: new Audio('carhit.mp3'), car: new Audio('carsound.mp3'),
-        collect: new Audio('collect.wav'), opening: new Audio('opening.wav'),
-        male_select: new Audio('male_select.mp3'), female_select: new Audio('female_select.mp3'),
-        male_start: new Audio('male_start.mp3'), female_start: new Audio('female_start.mp3'),
-        male_coin: new Audio('male_coin.mp3'), female_coin: new Audio('female_coin.mp3'),
-        male_magnet: new Audio('male_magnet.mp3'), female_magnet: new Audio('female_magnet.mp3'),
-        male_gameover: new Audio('male_gameover.mp3'), female_gameover: new Audio('female_gameover.mp3')
+    // --- ENHANCEMENT: Asset Preloader ---
+    const assetsToLoad = {
+        images: ['road.jpg', 'settings_icon.png', 'male_icon.png', 'female_icon.png', 'male_car_1.png', 'male_car_2.png', 'male_car_3.png', 'male_car_4.png', 'female_car_1.png', 'female_car_2.png', 'female_car_3.png', 'female_car_4.png', 'obstacle1.png', 'obstacle2.png', 'obstacle3.png', 'obstacle4.png', 'coin.gif', 'magnet.png'],
+        audio: ['carhit.mp3', 'carsound.mp3', 'collect.wav', 'opening.wav' /* Add other audio files here if you have them */]
     };
-    audioClips.car.loop = true;
+    const loadedAssets = { images: {} };
+    let assetsLoadedCount = 0;
+    let totalAssets = assetsToLoad.images.length + assetsToLoad.audio.length;
+
+    function assetLoaded() {
+        assetsLoadedCount++;
+        preloader.innerHTML = `<h2>Loading... (${Math.round((assetsLoadedCount / totalAssets) * 100)}%)</h2>`;
+        if (assetsLoadedCount === totalAssets) {
+            preloader.classList.add('hidden');
+            init(); // Start the game initialization
+        }
+    }
+
+    function preloadAssets() {
+        assetsToLoad.images.forEach(fileName => {
+            const img = new Image();
+            img.src = fileName;
+            img.onload = assetLoaded;
+            loadedAssets.images[fileName] = img;
+        });
+        assetsToLoad.audio.forEach(fileName => {
+            const audio = new Audio(fileName);
+            audio.addEventListener('canplaythrough', assetLoaded, { once: true });
+            const name = fileName.split('.')[0];
+            audioClips[name] = audio;
+        });
+        audioClips['car'].loop = true;
+    }
 
     function playAudio(name) {
         if (audioClips[name]) {
             audioClips[name].currentTime = 0;
-            audioClips[name].play();
+            audioClips[name].play().catch(e => console.log("Audio play failed. User interaction needed."));
         }
     }
-    
-    function playCommentary(event) {
-        const audioName = `${currentSettings.character}_${event}`;
-        playAudio(audioName);
-    }
-    
+
     function saveSettings() {
         currentSettings = { ...tempSettings };
         localStorage.setItem('carGameSettings', JSON.stringify(currentSettings));
-        playCommentary('select');
     }
 
-    function loadSettings() {
-        const saved = localStorage.getItem('carGameSettings');
-        if (saved) currentSettings = JSON.parse(saved);
+    function loadSettingsAndScore() {
+        const savedSettings = localStorage.getItem('carGameSettings');
+        if (savedSettings) currentSettings = JSON.parse(savedSettings);
         tempSettings = { ...currentSettings };
+
+        highScore = parseInt(localStorage.getItem('carGameHighScore') || '0');
+        document.getElementById('highScoreDisplay').innerText = `High Score: ${highScore}`;
     }
     
-    // --- GAME OBJECTS & STATE ---
+    // --- Game Objects & State ---
     let D_DIMS = {}; 
     const playerCar = { element: playerCarElement, x: 0, y: 0 };
     const road = { y1: 0, y2: 0 };
@@ -166,113 +205,77 @@
         canvas.width = gameContainer.clientWidth; canvas.height = gameContainer.clientHeight;
         D_DIMS.roadLeftBoundary = canvas.width * 0.20; D_DIMS.roadRightBoundary = canvas.width * 0.80;
         D_DIMS.playerCarWidth = canvas.width * 0.11; D_DIMS.playerCarHeight = D_DIMS.playerCarWidth * 2;
-        D_DIMS.playerCarSpeed = canvas.width * BASE_PLAYER_SPEED_MULTIPLIER * difficultyMultiplier;
-        D_DIMS.obstacleBaseSpeed = canvas.height * BASE_ROAD_SPEED_MULTIPLIER * difficultyMultiplier;
+        D_DIMS.playerCarSpeed = canvas.width * BASE_PLAYER_SPEED_MULTIPLIER;
+        D_DIMS.obstacleBaseSpeed = canvas.height * BASE_ROAD_SPEED_MULTIPLIER;
         D_DIMS.coinSize = canvas.width * 0.08;
-        D_DIMS.roadSpeed = D_DIMS.obstacleBaseSpeed;
     }
 
     function startGame(difficulty) {
         difficultyMultiplier = difficulty;
-        setDimensions();
         audioClips.opening.pause();
         startScreen.classList.add('hidden');
         settingsIcon.classList.add('hidden');
         leftButton.classList.remove('hidden');
         rightButton.classList.remove('hidden');
-        gameState = 'playing';
         resetGame();
+        gameState = 'playing';
         playerCar.element.classList.remove('hidden');
         playAudio('car');
-        playCommentary('start');
     }
     
     function init() {
-        loadSettings();
+        loadSettingsAndScore();
+        setDimensions();
+        showStartScreen();
+        gameLoop();
 
-        // Difficulty Buttons
+        window.addEventListener('resize', setDimensions); // <-- BUG FIX: Handle window resize
+
         document.getElementById('easyButton').addEventListener('click', () => startGame(1.0));
         document.getElementById('mediumButton').addEventListener('click', () => startGame(1.15));
         document.getElementById('hardButton').addEventListener('click', () => startGame(1.3));
+        document.getElementById('playAgainBtn').addEventListener('click', showStartScreen);
 
-        // Settings Screen Logic
-        settingsIcon.addEventListener('click', () => {
-            tempSettings = { ...currentSettings };
-            updateSettingsUI();
-            settingsScreen.classList.add('active');
-        });
+        settingsIcon.addEventListener('click', () => { tempSettings = { ...currentSettings }; updateSettingsUI(); settingsScreen.classList.add('active'); });
+        document.getElementById('saveBtn').addEventListener('click', () => { saveSettings(); settingsScreen.classList.remove('active'); });
+        document.querySelectorAll('.char-btn').forEach(btn => btn.addEventListener('click', () => { tempSettings.character = btn.dataset.char; updateSettingsUI(); }));
+        document.querySelectorAll('.car-btn').forEach(btn => btn.addEventListener('click', () => { tempSettings.car = btn.dataset.car; updateSettingsUI(); }));
 
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            saveSettings();
-            settingsScreen.classList.remove('active');
-        });
-
-        document.querySelectorAll('.char-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                tempSettings.character = btn.dataset.char;
-                updateSettingsUI();
-            });
-        });
-
-        document.querySelectorAll('.car-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                tempSettings.car = btn.dataset.car;
-                updateSettingsUI();
-            });
-        });
-
-        // Player Controls
         const handleTouchStart = (e) => e.preventDefault();
         leftButton.addEventListener('mousedown', () => isMovingLeft = true); leftButton.addEventListener('mouseup', () => isMovingLeft = false); leftButton.addEventListener('mouseleave', () => isMovingLeft = false); leftButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingLeft = true; }); leftButton.addEventListener('touchend', () => isMovingLeft = false);
         rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', () => isMovingRight = false); rightButton.addEventListener('mouseleave', () => isMovingRight = false); rightButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingRight = true; }); rightButton.addEventListener('touchend', () => isMovingRight = false);
-        
-        permissionScreen.addEventListener('click', () => {
-            permissionScreen.classList.add('hidden');
-            showStartScreen();
-            gameLoop();
-        }, { once: true });
     }
 
     function updateSettingsUI() {
         document.querySelectorAll('.char-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.char === tempSettings.character));
-        
         const showMaleCars = tempSettings.character === 'male';
         document.getElementById('maleCarSelector').classList.toggle('hidden', !showMaleCars);
         document.getElementById('femaleCarSelector').classList.toggle('hidden', showMaleCars);
-        
         document.querySelectorAll('.car-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.car === tempSettings.car));
     }
 
     function update() {
-        road.y1 += D_DIMS.roadSpeed; road.y2 += D_DIMS.roadSpeed;
+        const roadSpeed = D_DIMS.obstacleBaseSpeed * difficultyMultiplier;
+        road.y1 += roadSpeed; road.y2 += roadSpeed;
         if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height;
         if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height;
 
         if (gameState !== 'playing') return;
 
-        // Player Movement
         if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed;
         if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed;
         playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth));
         playerCar.element.style.left = `${playerCar.x}px`;
         
-        // Spawning Objects
-        if (++obstacleSpawnTimer > 100 / difficultyMultiplier) { obstacles.push(createGameObject('obstacle', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.playerCarWidth, D_DIMS.playerCarHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; }
-        if (++coinSpawnTimer > 120 / difficultyMultiplier) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.roadSpeed)); coinSpawnTimer = 0; }
-        if (++magnetSpawnTimer > 800 / difficultyMultiplier) { magnets.push(createGameObject('magnet', 'magnet.png', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.roadSpeed)); magnetSpawnTimer = 0; }
+        if (++obstacleSpawnTimer > 100 / difficultyMultiplier) { obstacles.push(createGameObject('obstacle', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.playerCarWidth, D_DIMS.playerCarHeight, roadSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; }
+        if (++coinSpawnTimer > 120 / difficultyMultiplier) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, roadSpeed)); coinSpawnTimer = 0; }
+        if (++magnetSpawnTimer > 800 / difficultyMultiplier) { magnets.push(createGameObject('magnet', 'magnet.png', D_DIMS.coinSize, D_DIMS.coinSize, roadSpeed)); magnetSpawnTimer = 0; }
         
-        // Magnet Logic
-        if (isMagnetActive) {
-            if (++magnetTimer > 300) { isMagnetActive = false; magnetTimer = 0; }
-        }
+        if (isMagnetActive && ++magnetTimer > 300) { isMagnetActive = false; magnetTimer = 0; }
 
-        // Update & Collision Check
-        updateAndCheck(magnets, (magnet) => { isMagnetActive = true; magnetTimer = 0; playCommentary('magnet'); });
-        updateAndCheck(obstacles, () => {
-            audioClips.car.pause(); playAudio('hit'); playCommentary('gameover');
-            gameState = 'gameOver'; setTimeout(showStartScreen, 2000);
-        });
-        updateAndCheck(coins, () => { score += 5; playAudio('collect'); playCommentary('coin'); });
+        updateAndCheck(magnets, () => { isMagnetActive = true; magnetTimer = 0; });
+        updateAndCheck(obstacles, () => { audioClips.car.pause(); playAudio('hit'); gameState = 'gameOver'; showGameOver(); });
+        updateAndCheck(coins, () => { score += 5; playAudio('collect'); });
     }
 
     function updateAndCheck(arr, onCollision) {
@@ -282,11 +285,7 @@
                 const dx = (playerCar.x + D_DIMS.playerCarWidth / 2) - (obj.x + obj.width / 2);
                 const dy = (playerCar.y + D_DIMS.playerCarHeight / 2) - (obj.y + obj.height / 2);
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < canvas.width / 2) {
-                    obj.x += dx / dist * 5;
-                    obj.y += dy / dist * 5;
-                    obj.element.style.left = `${obj.x}px`;
-                }
+                if (dist < canvas.width / 2) { obj.x += dx / dist * 5; obj.y += dy / dist * 5; obj.element.style.left = `${obj.x}px`; }
             }
             obj.y += obj.speed;
             obj.element.style.top = `${obj.y}px`;
@@ -302,32 +301,31 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const roadImg = new Image(); roadImg.src = 'road.jpg';
-        ctx.drawImage(roadImg, 0, road.y1, canvas.width, canvas.height);
-        ctx.drawImage(roadImg, 0, road.y2, canvas.width, canvas.height);
+        // <-- BUG FIX: Use preloaded image instead of creating a new one every frame
+        const roadImg = loadedAssets.images['road.jpg'];
+        if(roadImg.complete) {
+            ctx.drawImage(roadImg, 0, road.y1, canvas.width, canvas.height);
+            ctx.drawImage(roadImg, 0, road.y2, canvas.width, canvas.height);
+        }
         
-        if (gameState !== 'menu') {
+        if (gameState === 'playing') {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(10, 10, 200, 50);
+            ctx.fillRect(10, 10, 220, 50);
             ctx.fillStyle = 'white'; ctx.font = 'bold 24px Arial';
             ctx.fillText('Score: ' + score, 20, 42);
-        }
-        if (gameState === 'gameOver') {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red'; ctx.font = 'bold 72px Arial'; ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
         }
     }
 
     function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
     
     function resetGame() {
-        gameObjectContainer.innerHTML = '';
+        gameObjectContainer.innerHTML = ''; // Clear all old game objects
         playerCar.element = document.createElement('img');
         playerCar.element.id = 'playerCarElement'; playerCar.element.className = 'game-object';
-        playerCar.element.src = currentSettings.car; // Use saved car
+        playerCar.element.src = currentSettings.car;
         playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`; playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`;
         gameObjectContainer.appendChild(playerCar.element);
+        
         playerCar.x = (canvas.width / 2) - (D_DIMS.playerCarWidth / 2);
         playerCar.y = canvas.height - D_DIMS.playerCarHeight - 20;
         playerCar.element.style.top = `${playerCar.y}px`;
@@ -338,7 +336,8 @@
     }
 
     function showStartScreen() {
-        setDimensions(); resetGame();
+        gameOverScreen.classList.add('hidden');
+        resetGame();
         gameState = 'menu';
         playerCar.element.classList.add('hidden');
         startScreen.classList.remove('hidden');
@@ -346,6 +345,21 @@
         leftButton.classList.add('hidden');
         rightButton.classList.add('hidden');
         playAudio('opening');
+    }
+    
+    // --- ENHANCEMENT: Better Game Over ---
+    function showGameOver() {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('carGameHighScore', highScore);
+            document.getElementById('highScoreDisplay').innerText = `High Score: ${highScore}`;
+        }
+        document.getElementById('finalScore').innerText = `Score: ${score}`;
+        document.getElementById('gameOverHighScore').innerText = `High Score: ${highScore}`;
+        
+        leftButton.classList.add('hidden');
+        rightButton.classList.add('hidden');
+        gameOverScreen.classList.remove('hidden');
     }
 
     function createGameObject(type, src, width, height, speed) {
@@ -365,7 +379,9 @@
         return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
     }
     
-    init();
+    // Start Preloading assets, which will then trigger init()
+    preloadAssets();
+
     </script>
 </body>
 </html>
