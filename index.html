@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Car Racing - Pro Edition (HD Voice)</title>
-    <!-- Baaki ka Head content (CSS) same rahega, koi badlav nahi -->
+    <title>Car Racing - Pro Edition (Fixed)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #111; overflow: hidden; font-family: 'Poppins', sans-serif; }
-        #gameContainer { position: relative; width: 100vw; height: 100vh; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        #gameContainer { position: relative; width: 100vw; height: 100vh; -webkit-tap-highlight-color: transparent; overflow: hidden; background-color: #333; }
         canvas { width: 100%; height: 100%; display: block; }
         .control-btn { position: absolute; bottom: 20px; width: 65px; height: 65px; background-color: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50%; color: white; font-size: 35px; display: flex; justify-content: center; align-items: center; cursor: pointer; user-select: none; z-index: 10; }
         .control-btn:active { background-color: rgba(255, 255, 255, 0.3); transform: scale(0.95); }
@@ -37,7 +36,6 @@
     </style>
 </head>
 <body>
-    <!-- HTML content poora same rahega, koi badlav nahi -->
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="highScoreDisplay" class="hidden"></div>
@@ -68,12 +66,12 @@
             </div>
         </div>
         <div id="permissionScreen" class="screen">
-            <h2>Tap to Start</h2>
+            <h2 id="loadingText">Loading...</h2>
         </div>
     </div>
 
 <script>
-    // --- Elements (Koi badlav nahi) ---
+    // --- Elements ---
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
     const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton');
     const startScreen = document.getElementById('startScreen'), characterSelector = document.getElementById('characterSelector');
@@ -83,69 +81,54 @@
     const maleCharacterBtn = document.getElementById('maleCharacter'), femaleCharacterBtn = document.getElementById('femaleCharacter');
     const nitroButton = document.getElementById('nitroButton');
     const powerupStatusContainer = document.getElementById('powerupStatus');
+    const loadingText = document.getElementById('loadingText');
 
-    // --- Game State (Koi badlav nahi) ---
-    let gameState = 'menu', score = 0, highScore = 0;
+    // --- Game State ---
+    let gameState = 'loading', score = 0, highScore = 0;
     let isMovingLeft = false, isMovingRight = false;
     let selectedCharacter = null;
     let isMagnetActive = false, magnetTimer = 0;
     let isNitroReady = false, isNitroActive = false, nitroTimer = 0;
     let powerupSpawnTimer = 0;
 
-    // --- YAHAN BADLAV KIYA GAYA HAI: Audio files ka system ---
+    // --- Audio files ka system ---
     let assets = {
         road: new Image(), hitSound: new Audio(), carSound: new Audio(), 
         collectSound: new Audio(), openingSound: new Audio(),
-        // Har dialogue ke liye alag audio object
         voices: {
             male: { select: new Audio(), start: new Audio(), coin: new Audio(), gameOver: new Audio(), magnet: new Audio(), nitro: new Audio() },
             female: { select: new Audio(), start: new Audio(), coin: new Audio(), gameOver: new Audio(), magnet: new Audio(), nitro: new Audio() }
         }
     };
 
-    // --- YAHAN BADLAV KIYA GAYA HAI: Sabhi audio files ke path ---
-    // Aapko in sabhi naam se .mp3 files banani hongi
+    // --- Sabhi audio files ke path ---
     const assetSources = {
         road: 'road.jpg', hitSound: 'carhit.mp3', carSound: 'carsound.mp3',
         collectSound: 'collect.wav', openingSound: 'opening.wav',
-        
-        // Male Voice Files
-        male_select: 'male_select.mp3',
-        male_start: 'male_start.mp3',
-        male_coin: 'male_coin.mp3',
-        male_gameOver: 'male_gameOver.mp3',
-        male_magnet: 'male_magnet.mp3',
-        male_nitro: 'male_nitro.mp3',
-        
-        // Female Voice Files
-        female_select: 'female_select.mp3',
-        female_start: 'female_start.mp3',
-        female_coin: 'female_coin.mp3',
-        female_gameOver: 'female_gameOver.mp3',
-        female_magnet: 'female_magnet.mp3',
-        female_nitro: 'female_nitro.mp3',
+        male_select: 'male_select.mp3', male_start: 'male_start.mp3',
+        male_coin: 'male_coin.mp3', male_gameOver: 'male_gameOver.mp3',
+        male_magnet: 'male_magnet.mp3', male_nitro: 'male_nitro.mp3',
+        female_select: 'female_select.mp3', female_start: 'female_start.mp3',
+        female_coin: 'female_coin.mp3', female_gameOver: 'female_gameOver.mp3',
+        female_magnet: 'female_magnet.mp3', female_nitro: 'female_nitro.mp3',
     };
     
-    // --- Baaki variables same rahenge ---
     let D_DIMS = {}; 
     let playerCar = { x: 0, y: 0 };
     let coins = [], obstacles = [], powerups = [];
 
-    // --- YAHAN BADLAV KIYA GAYA HAI: Voice play karne wala function ab audio files chalayega ---
+    // --- Voice play karne wala function ---
     function playVoice(event) {
         if (!selectedCharacter) return;
-        
-        // Sabhi purani voices ko roko
         Object.values(assets.voices.male).forEach(s => { s.pause(); s.currentTime = 0; });
         Object.values(assets.voices.female).forEach(s => { s.pause(); s.currentTime = 0; });
-        
         const sound = assets.voices[selectedCharacter][event];
-        if (sound) {
-            sound.play().catch(e => console.error("Voice play failed:", e));
+        if (sound && sound.readyState >= 2) { // Check if sound is ready to play
+            sound.play().catch(e => console.warn("Voice play failed:", e));
         }
     }
     
-    // --- Main Game Functions (init, startGame, etc. same rahenge) ---
+    // --- Main Game Functions ---
     function init() {
         highScore = localStorage.getItem('carGameHighScore') || 0;
         document.getElementById('easyButton').addEventListener('click', () => startGame(1.0));
@@ -160,7 +143,17 @@
         leftButton.addEventListener('touchstart', (e) => handleTouch(e, -1)); leftButton.addEventListener('touchend', stopMove);
         rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', stopMove);
         rightButton.addEventListener('touchstart', (e) => handleTouch(e, 1)); rightButton.addEventListener('touchend', stopMove);
-        permissionScreen.addEventListener('click', () => { permissionScreen.classList.add('hidden'); showCharacterSelectionScreen(); requestAnimationFrame(gameLoop); }, { once: true });
+        
+        // YEH FIXED HAI: Ab permission screen par click karne se game aage badhega
+        permissionScreen.addEventListener('click', () => {
+            if (gameState === 'menu') { // Sirf tabhi kaam karega jab loading poori ho chuki ho
+                permissionScreen.classList.add('hidden');
+                showCharacterSelectionScreen();
+            }
+        });
+        
+        // Loading complete hone ke baad game loop start karo
+        requestAnimationFrame(gameLoop);
     }
     
     function startGame(difficulty) {
@@ -176,64 +169,145 @@
         resetGame();
         playerCar.element.classList.remove('hidden');
         assets.carSound.currentTime = 0;
-        assets.carSound.play();
+        if(assets.carSound.readyState >= 2) assets.carSound.play();
         playVoice('start');
     }
 
-    // --- Game Loop aur baaki functions same rahenge ---
-    // (update, draw, gameOver, spawnObjects, etc.)
-    // ... Saare bache hue functions bina kisi badlav ke yahan paste kar dein ...
-    // --- YAHAN BADLAV KIYA GAYA HAI: Asset loader ab voice files bhi load karega ---
+    let roadY1 = 0, roadY2 = 0;
+    function update() {
+        // Menu mein bhi background scroll hoga
+        let currentRoadSpeed = D_DIMS.roadSpeed * 0.5; // Menu speed
+        if (gameState === 'playing') {
+            currentRoadSpeed = isNitroActive ? D_DIMS.roadSpeed * 3 : D_DIMS.roadSpeed;
+        }
+
+        roadY1 += currentRoadSpeed; roadY2 += currentRoadSpeed;
+        if (roadY1 >= canvas.height) roadY1 = roadY2 - canvas.height;
+        if (roadY2 >= canvas.height) roadY2 = roadY1 - canvas.height;
+
+        if (gameState !== 'playing') return; // Sirf playing state mein game logic chalega
+
+        if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed;
+        if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed;
+        playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth));
+        playerCar.element.style.left = `${playerCar.x}px`;
+        
+        spawnObjects();
+        updateGameObjects(coins, currentRoadSpeed);
+        updateGameObjects(obstacles, currentRoadSpeed);
+        updateGameObjects(powerups, currentRoadSpeed);
+        handleCollisions();
+        updatePowerups();
+    }
+    
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if(assets.road.complete && assets.road.naturalHeight !== 0){
+            ctx.drawImage(assets.road, 0, roadY1, canvas.width, canvas.height);
+            ctx.drawImage(assets.road, 0, roadY2, canvas.width, canvas.height);
+        }
+        
+        if (gameState === 'playing' || gameState === 'gameOver') {
+            drawScore();
+        }
+        if (isNitroActive) {
+            ctx.fillStyle = "rgba(0, 150, 255, 0.2)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        if (gameState === 'gameOver') { drawGameOver(); }
+        requestAnimationFrame(gameLoop);
+    }
+    
+    function gameOver() {
+        if (gameState === 'gameOver') return;
+        gameState = 'gameOver';
+        assets.carSound.pause();
+        if(assets.hitSound.readyState >= 2) assets.hitSound.play();
+        playVoice('gameOver');
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('carGameHighScore', highScore);
+        }
+        playerCar.element.style.transform = "rotate(30deg) scale(0.9)";
+        setTimeout(showCharacterSelectionScreen, 2500);
+    }
+
+    // YEH FIXED HAI: Asset loader ab file na milne par bhi game ko aage badhayega
     function loadAssets(callback) {
         let assetsLoaded = 0;
         const allSources = Object.keys(assetSources);
         const numAssets = allSources.length;
 
-        function assetLoaded() {
-            if (++assetsLoaded === numAssets) callback();
+        function assetLoaded(assetName, success) {
+            if (!success) {
+                console.warn(`Warning: Asset "${assetName}" failed to load. Check path and filename.`);
+            }
+            if (++assetsLoaded === numAssets) {
+                // Loading complete
+                loadingText.textContent = "Tap to Start";
+                gameState = 'menu'; // Ab game menu state mein hai
+                callback();
+            }
         }
         
-        // Basic Sounds
-        assets.road.src = assetSources.road; assets.road.onload = assetLoaded;
-        assets.hitSound.src = assetSources.hitSound; assets.hitSound.oncanplaythrough = assetLoaded;
-        assets.carSound.src = assetSources.carSound; assets.carSound.loop = true; assets.carSound.oncanplaythrough = assetLoaded;
-        assets.collectSound.src = assetSources.collectSound; assets.collectSound.oncanplaythrough = assetLoaded;
-        assets.openingSound.src = assetSources.openingSound; assets.openingSound.oncanplaythrough = assetLoaded;
+        const setupAsset = (asset, src, name) => {
+            const successCallback = () => assetLoaded(name, true);
+            const errorCallback = () => assetLoaded(name, false);
+            
+            if (asset instanceof Image) {
+                asset.onload = successCallback;
+            } else if (asset instanceof Audio) {
+                // oncanplaythrough event can be unreliable, so we use a timeout fallback
+                asset.oncanplaythrough = successCallback;
+                setTimeout(() => {
+                    // If the event doesn't fire in 3 seconds, assume it loaded or failed
+                    if(asset.readyState < 2) errorCallback();
+                }, 3000);
+            }
+            asset.onerror = errorCallback;
+            asset.src = src;
+        };
 
-        // Male voices
-        for(let key in assets.voices.male){
-            assets.voices.male[key].src = assetSources[`male_${key}`];
-            assets.voices.male[key].oncanplaythrough = assetLoaded;
-        }
-        // Female voices
-        for(let key in assets.voices.female){
-            assets.voices.female[key].src = assetSources[`female_${key}`];
-            assets.voices.female[key].oncanplaythrough = assetLoaded;
+        // Load basic assets
+        setupAsset(assets.road, assetSources.road, 'road.jpg');
+        setupAsset(assets.hitSound, assetSources.hitSound, 'hitSound');
+        setupAsset(assets.carSound, assetSources.carSound, 'carSound');
+        assets.carSound.loop = true;
+        setupAsset(assets.collectSound, assetSources.collectSound, 'collectSound');
+        setupAsset(assets.openingSound, assetSources.openingSound, 'openingSound');
+
+        // Load voices
+        for (let gender in assets.voices) {
+            for (let key in assets.voices[gender]) {
+                const sourceName = `${gender}_${key}`;
+                setupAsset(assets.voices[gender][key], assetSources[sourceName], sourceName);
+            }
         }
     }
     
-    // --- BAAKI SABHI FUNCTIONS BINA KISI BADLAV KE ---
-    let roadY1 = 0, roadY2 = 0;
-    function update() { if (gameState !== 'playing') return; let currentRoadSpeed = isNitroActive ? D_DIMS.roadSpeed * 3 : D_DIMS.roadSpeed; roadY1 += currentRoadSpeed; roadY2 += currentRoadSpeed; if (roadY1 >= canvas.height) roadY1 = roadY2 - canvas.height; if (roadY2 >= canvas.height) roadY2 = roadY1 - canvas.height; if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed; if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed; playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); playerCar.element.style.left = `${playerCar.x}px`; spawnObjects(); updateGameObjects(coins, currentRoadSpeed); updateGameObjects(obstacles, currentRoadSpeed); updateGameObjects(powerups, currentRoadSpeed); handleCollisions(); updatePowerups(); }
-    function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, roadY1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, roadY2, canvas.width, canvas.height); if (gameState !== 'menu') { drawScore(); } if (isNitroActive) { ctx.fillStyle = "rgba(0, 150, 255, 0.2)"; ctx.fillRect(0, 0, canvas.width, canvas.height); } }
-    function gameLoop() { update(); draw(); if (gameState === 'gameOver') { drawGameOver(); } requestAnimationFrame(gameLoop); }
-    function gameOver() { if (gameState === 'gameOver') return; gameState = 'gameOver'; assets.carSound.pause(); assets.hitSound.play(); playVoice('gameOver'); if (score > highScore) { highScore = score; localStorage.setItem('carGameHighScore', highScore); } playerCar.element.style.transform = "rotate(30deg) scale(0.9)"; setTimeout(showCharacterSelectionScreen, 2500); }
+    // --- Baaki sabhi helper functions bina kisi badlav ke ---
+    function showCharacterSelectionScreen() { setDimensions(); resetGame(); gameState = 'menu'; startScreen.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); nitroButton.classList.add('hidden'); highScoreDisplay.innerHTML = `High Score: ${highScore}`; highScoreDisplay.classList.remove('hidden'); characterSelector.classList.remove('hidden'); if(assets.openingSound.readyState >= 2) { assets.openingSound.currentTime = 0; assets.openingSound.play();} }
+    function showStartScreen() { characterSelector.classList.add('hidden'); startScreen.classList.remove('hidden'); }
     let obstacleSpawnTimer = 0, coinSpawnTimer = 0;
     function spawnObjects() { obstacleSpawnTimer++; if (obstacleSpawnTimer > 120 / D_DIMS.difficultyMultiplier) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random()*4)+1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > 180 / D_DIMS.difficultyMultiplier) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize)); coinSpawnTimer = 0; } powerupSpawnTimer++; if (powerupSpawnTimer > 600) { let type = Math.random() > 0.5 ? 'magnet' : 'nitro'; if(type === 'nitro' && isNitroReady) return; powerups.push(createGameObject('powerup', `${type}.png`, D_DIMS.coinSize, D_DIMS.coinSize, 0, type)); powerupSpawnTimer = 0; } }
     function updateGameObjects(objectArray, roadSpeed) { for (let i = objectArray.length - 1; i >= 0; i--) { const obj = objectArray[i]; if(obj.type === 'coin' && isMagnetActive) { let dx = (playerCar.x + D_DIMS.playerCarWidth/2) - (obj.x + obj.width/2); let dy = (playerCar.y + D_DIMS.playerCarHeight/2) - (obj.y + obj.height/2); let dist = Math.sqrt(dx*dx + dy*dy); if(dist < canvas.width * 0.5) { obj.x += dx * 0.1; obj.y += dy * 0.1; obj.element.style.left = `${obj.x}px`; } } obj.y += (obj.speed || D_DIMS.coinSpeed) + roadSpeed; obj.element.style.top = `${obj.y}px`; if (obj.y > canvas.height) { obj.element.remove(); objectArray.splice(i, 1); } } }
-    function handleCollisions() { const playerRect = playerCar.element.getBoundingClientRect(); for (let obj of obstacles) { if (checkCollision(playerRect, obj.element.getBoundingClientRect())) { gameOver(); return; } } for (let i = coins.length - 1; i >= 0; i--) { if (checkCollision(playerRect, coins[i].element.getBoundingClientRect())) { score += 5; if (score % 50 === 0) playVoice('coin'); assets.collectSound.play(); coins[i].element.remove(); coins.splice(i, 1); } } for (let i = powerups.length - 1; i >= 0; i--) { if (checkCollision(playerRect, powerups[i].element.getBoundingClientRect())) { if (powerups[i].powerupType === 'magnet') { isMagnetActive = true; magnetTimer = 300; playVoice('magnet'); } else if (powerups[i].powerupType === 'nitro') { isNitroReady = true; nitroButton.classList.remove('hidden'); playVoice('nitro'); } powerups[i].element.remove(); powerups.splice(i, 1); } } }
+    function handleCollisions() { const playerRect = playerCar.element.getBoundingClientRect(); for (let obj of obstacles) { if (checkCollision(playerRect, obj.element.getBoundingClientRect())) { gameOver(); return; } } for (let i = coins.length - 1; i >= 0; i--) { if (checkCollision(playerRect, coins[i].element.getBoundingClientRect())) { score += 5; if (score % 50 === 0) playVoice('coin'); if(assets.collectSound.readyState >= 2) assets.collectSound.play(); coins[i].element.remove(); coins.splice(i, 1); } } for (let i = powerups.length - 1; i >= 0; i--) { if (checkCollision(playerRect, powerups[i].element.getBoundingClientRect())) { if (powerups[i].powerupType === 'magnet') { isMagnetActive = true; magnetTimer = 300; playVoice('magnet'); } else if (powerups[i].powerupType === 'nitro') { isNitroReady = true; nitroButton.classList.remove('hidden'); playVoice('nitro'); } powerups[i].element.remove(); powerups.splice(i, 1); } } }
     function updatePowerups() { powerupStatusContainer.innerHTML = ''; if (isMagnetActive) { magnetTimer--; if (magnetTimer <= 0) isMagnetActive = false; else addPowerupStatus('magnet.png', `${Math.ceil(magnetTimer/60)}s`); } if (isNitroActive) { nitroTimer--; if (nitroTimer <= 0) isNitroActive = false; } }
     function activateNitro() { if (!isNitroReady || isNitroActive) return; isNitroReady = false; isNitroActive = true; nitroTimer = 180; nitroButton.classList.add('hidden'); }
     function addPowerupStatus(iconSrc, text) { powerupStatusContainer.innerHTML += `<div class="status-item"><img src="${iconSrc}"><span>${text}</span></div>`; }
-    function showCharacterSelectionScreen() { setDimensions(); resetGame(); gameState = 'menu'; startScreen.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); nitroButton.classList.add('hidden'); highScoreDisplay.innerHTML = `High Score: ${highScore}`; highScoreDisplay.classList.remove('hidden'); characterSelector.classList.remove('hidden'); assets.openingSound.currentTime = 0; assets.openingSound.play(); }
-    function showStartScreen() { characterSelector.classList.add('hidden'); startScreen.classList.remove('hidden'); }
     function drawScore() { ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(10, 10, 200, 50); ctx.fillStyle = 'white'; ctx.font = 'bold 24px Poppins'; ctx.textAlign = 'left'; ctx.fillText(`Score: ${score}`, 25, 42); }
     function drawGameOver() { ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'white'; ctx.font = `bold ${canvas.width * 0.12}px Poppins`; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 40); ctx.font = `bold ${canvas.width * 0.06}px Poppins`; ctx.fillText(`Your Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20); }
     setDimensions = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; Object.assign(D_DIMS, { roadLeftBoundary: canvas.width * 0.25, roadRightBoundary: canvas.width * 0.75, playerCarWidth: canvas.width * 0.12, playerCarHeight: (canvas.width * 0.12) * 1.8, playerCarSpeed: canvas.width * 0.015, obstacleBaseSpeed: canvas.height * 0.004, coinSpeed: canvas.height * 0.006 }); D_DIMS.obstacleWidth = D_DIMS.playerCarWidth; D_DIMS.obstacleHeight = D_DIMS.playerCarHeight; D_DIMS.coinSize = D_DIMS.playerCarWidth * 0.6; D_DIMS.roadSpeed = D_DIMS.obstacleBaseSpeed * D_DIMS.difficultyMultiplier; };
-    resetGame = () => { gameObjectContainer.innerHTML = ''; coins = []; obstacles = []; powerups = []; score = 0; isMagnetActive = false; isNitroActive = false; isNitroReady = false; powerupSpawnTimer = 0; playerCar.element = createGameObject('player-car', 'player_car.png', D_DIMS.playerCarWidth, D_DIMS.playerCarHeight).element; playerCar.x = canvas.width/2 - D_DIMS.playerCarWidth/2; playerCar.y = canvas.height - D_DIMS.playerCarHeight - 40; playerCar.element.style.left = `${playerCar.x}px`; playerCar.element.style.top = `${playerCar.y}px`; playerCar.element.style.transform = ''; roadY1 = 0; roadY2 = -canvas.height; };
+    resetGame = () => { gameObjectContainer.innerHTML = ''; coins = []; obstacles = []; powerups = []; score = 0; isMagnetActive = false; isNitroActive = false; isNitroReady = false; powerupSpawnTimer = 0; if (playerCar.element) playerCar.element.remove(); playerCar.element = createGameObject('player-car', 'player_car.png', D_DIMS.playerCarWidth, D_DIMS.playerCarHeight).element; playerCar.x = canvas.width/2 - D_DIMS.playerCarWidth/2; playerCar.y = canvas.height - D_DIMS.playerCarHeight - 40; playerCar.element.style.left = `${playerCar.x}px`; playerCar.element.style.top = `${playerCar.y}px`; playerCar.element.style.transform = ''; roadY1 = 0; roadY2 = -canvas.height; };
     createGameObject = (type, src, width, height, speed = 0, powerupType = null) => { const el = document.createElement('img'); el.src = src; el.className = `game-object ${type}`; Object.assign(el.style, { width: `${width}px`, height: `${height}px`, top: `-${height}px` }); const x = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary; el.style.left = `${x}px`; gameObjectContainer.appendChild(el); return { element: el, x, y: -height, width, height, speed, type, powerupType }; };
     checkCollision = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
+    // Game ko load karna shuru karo
     loadAssets(init);
 </script>
 </body>
