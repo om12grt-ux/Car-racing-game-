@@ -3,169 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Car Racing - Final Version</title>
-    <!-- CSS poora same rahega, koi badlav nahi -->
+    <title>Car Racing Game</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+        :root {
+            --primary-color: #4CAF50; --dark-grey: #222; --light-grey: #333;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #111; overflow: hidden; font-family: 'Poppins', sans-serif; }
-        #gameContainer { position: relative; width: 100vw; height: 100vh; -webkit-tap-highlight-color: transparent; overflow: hidden; background-color: #333; }
+        body { background-color: #111; overflow: hidden; font-family: 'Arial', sans-serif; color: white; }
+        #gameContainer { position: relative; width: 100vw; height: 100vh; -webkit-tap-highlight-color: transparent; overflow: hidden; }
         canvas { width: 100%; height: 100%; display: block; }
-        .control-btn { position: absolute; bottom: 80px; width: 70px; height: 70px; background-color: rgba(0, 0, 0, 0.5); border: 3px solid rgba(255, 255, 255, 0.6); border-radius: 50%; color: white; font-size: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; user-select: none; z-index: 10; }
-        .control-btn:active { background-color: rgba(255, 255, 255, 0.3); transform: scale(0.95); }
-        #leftButton { left: 30px; }
-        #rightButton { right: 30px; }
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; text-align: center; padding: 20px; }
-        .screen h1 { font-size: 12vw; margin-bottom: 10px; text-shadow: 4px 4px 8px #000; }
-        .screen h2 { font-size: 8vw; margin-bottom: 30px; text-shadow: 3px 3px 6px #000; }
-        .difficulty-btn { font-size: 5vw; padding: 15px 40px; cursor: pointer; background: linear-gradient(145deg, #56c75b, #48a64c); color: white; border: none; border-radius: 15px; font-weight: 600; box-shadow: 0 6px #3a833d; transition: all 0.1s ease-in-out; }
-        .difficulty-btn:active { box-shadow: 0 2px #3a833d; transform: translateY(4px); }
-        #characterSelector .options { display: flex; gap: 20px; justify-content: center; align-items: center; }
-        .character-btn { cursor: pointer; border: 4px solid transparent; border-radius: 25px; padding: 10px; background-color: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); transition: transform 0.2s, border-color 0.2s; }
-        .character-btn:hover { transform: scale(1.05); border-color: #fff; }
-        .character-btn img { width: 35vw; max-width: 150px; border-radius: 20px; }
-        .character-btn span { display: block; margin-top: 10px; font-size: 5.5vw; font-weight: 600; }
+        
+        .control-btn { position: absolute; bottom: 60px; width: 70px; height: 70px; background-color: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; color: white; font-size: 40px; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; user-select: none; z-index: 10; }
+        .control-btn:active { background-color: rgba(255, 255, 255, 0.3); }
+        #leftButton { left: 20px; }
+        #rightButton { right: 20px; }
+
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        
+        #startScreen h1 { font-size: 10vw; margin-bottom: 20px; text-shadow: 3px 3px 5px #000; }
+        #highScoreDisplay { font-size: 4vw; margin-bottom: 30px; color: #ffd700; }
+        
+        #difficultySelector { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+        .btn { font-size: 5vw; padding: 20px 50px; cursor: pointer; background-color: var(--primary-color); border: none; border-radius: 15px; font-weight: bold; box-shadow: 0 5px #666; width: 250px; max-width: 60vw; }
+        .btn:active { box-shadow: 0 2px #666; transform: translateY(3px); }
+        .difficulty-btn { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        #settingsIcon { position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; cursor: pointer; z-index: 11; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7)); }
+        
+        #settingsScreen { background-color: rgba(0, 0, 0, 0.85); z-index: 20; backdrop-filter: blur(5px); transform: scale(0); transition: transform 0.3s ease-in-out; }
+        #settingsScreen.active { transform: scale(1); }
+        #settingsBox { background-color: var(--dark-grey); padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; text-align: center; border: 2px solid var(--light-grey); }
+        .settings-title { font-size: 6vw; margin-bottom: 20px; color: var(--primary-color); }
+        .selection-container { margin-bottom: 25px; }
+        .selection-container h3 { font-size: 5vw; margin-bottom: 15px; }
+        .options-grid { display: flex; justify-content: center; gap: 20px; }
+        
+        .char-btn, .car-btn { cursor: pointer; background-color: var(--light-grey); border: 4px solid transparent; border-radius: 15px; padding: 10px; transition: all 0.2s ease; }
+        .char-btn img, .car-btn img { display: block; width: 80px; height: 80px; object-fit: cover; border-radius: 10px; }
+        .char-btn.selected, .car-btn.selected { border-color: var(--primary-color); transform: scale(1.1); box-shadow: 0 0 15px var(--primary-color); }
+        
+        #saveBtn { width: 100%; }
+
+        #gameOverScreen { z-index: 15; background-color: rgba(0,0,0,0.8); }
+        #gameOverBox { text-align: center; }
+        #gameOverBox h1 { font-size: 12vw; color: red; margin-bottom: 20px; }
+        #gameOverBox p { font-size: 6vw; margin-bottom: 30px; }
+
         .hidden { display: none !important; }
-        .game-object { position: absolute; filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.5)); transition: transform 0.1s linear; }
-        #highScoreDisplay { position: absolute; top: 20px; right: 20px; color: white; font-size: 5vw; font-weight: 600; background-color: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 15px; text-shadow: 2px 2px 4px #000; z-index: 5; }
-        #nitroButton { position: absolute; bottom: 170px; right: 30px; width: 70px; height: 70px; background-color: rgba(212, 60, 20, 0.8); border: 3px solid #ffc107; font-size: 20px; font-weight: bold; animation: pulse-nitro 1.5s infinite; }
-        @keyframes pulse-nitro { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        #powerupStatus { position: absolute; top: 90px; left: 10px; z-index: 5; display: flex; flex-direction: column; gap: 10px; }
-        .status-item { display: flex; align-items: center; background-color: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 10px; }
-        .status-item img { width: 30px; height: 30px; margin-right: 10px; }
-        .status-item span { color: white; font-size: 18px; font-weight: bold; }
+        .game-object { position: absolute; filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.5)); }
+        #playerCarElement { z-index: 4; }
+        #preloader { background-color: #000; z-index: 100; font-size: 8vw; }
     </style>
 </head>
 <body>
-    <div id="gameContainer"> <canvas id="gameCanvas"></canvas> <div id="highScoreDisplay" class="hidden"></div> <div id="gameObjectContainer"></div> <div id="leftButton" class="control-btn hidden">◀</div> <div id="rightButton" class="control-btn hidden">▶</div> <button id="nitroButton" class="control-btn hidden">BOOST</button> <div id="powerupStatus"></div> <div id="characterSelector" class="screen hidden"> <h2>Choose Your Driver</h2> <div class="options"> <div id="maleCharacter" class="character-btn"> <img id="maleIconImg" src=""> <span>Male</span> </div> <div id="femaleCharacter" class="character-btn"> <img id="femaleIconImg" src=""> <span>Female</span> </div> </div> </div> <div id="startScreen" class="screen hidden"> <h1>CAR RACING</h1> <div id="difficultySelector"> <button id="easyButton" class="difficulty-btn">Easy</button> <button id="mediumButton" class="difficulty-btn">Medium</button> <button id="hardButton" class="difficulty-btn">Hard</button> </div> </div> <div id="permissionScreen" class="screen"> <h2 id="loadingText">Loading...</h2> </div> </div>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameObjectContainer"><img id="playerCarElement" class="game-object hidden"></div>
+        <img src="settings_icon.png" id="settingsIcon">
 
-<script>
-    // --- Elements ---
+        <div id="startScreen" class="screen">
+            <h1>Car Racing</h1>
+            <p id="highScoreDisplay">High Score: 0</p>
+            <div id="difficultySelector">
+                <button id="easyButton" class="btn difficulty-btn">Easy</button>
+                <button id="mediumButton" class="btn difficulty-btn">Medium</button>
+                <button id="hardButton" class="btn difficulty-btn">Hard</button>
+            </div>
+        </div>
+        
+        <div id="gameOverScreen" class="screen hidden">
+            <div id="gameOverBox">
+                <h1>GAME OVER</h1>
+                <p id="finalScore">Score: 0</p>
+                <p id="gameOverHighScore">High Score: 0</p>
+                <button id="playAgainBtn" class="btn">Play Again</button>
+            </div>
+        </div>
+
+        <div id="settingsScreen" class="screen">
+            <div id="settingsBox">
+                <h2 class="settings-title">Settings</h2>
+                <div class="selection-container">
+                    <h3>Select Character</h3>
+                    <div class="options-grid">
+                        <button id="maleCharBtn" class="char-btn" data-char="male"><img src="male_icon.png"></button>
+                        <button id="femaleCharBtn" class="char-btn" data-char="female"><img src="female_icon.png"></button>
+                    </div>
+                </div>
+                <div class="selection-container">
+                    <h3>Select Car</h3>
+                    <div id="maleCarSelector" class="options-grid hidden">
+                        <button class="car-btn" data-car="male_car_1.png"><img src="male_car_1.png"></button>
+                        <button class="car-btn" data-car="male_car_2.png"><img src="male_car_2.png"></button>
+                        <button class="car-btn" data-car="male_car_3.png"><img src="male_car_3.png"></button>
+                        <button class="car-btn" data-car="male_car_4.png"><img src="male_car_4.png"></button>
+                    </div>
+                    <div id="femaleCarSelector" class="options-grid hidden">
+                        <button class="car-btn" data-car="female_car_1.png"><img src="female_car_1.png"></button>
+                        <button class="car-btn" data-car="female_car_2.png"><img src="female_car_2.png"></button>
+                        <button class="car-btn" data-car="female_car_3.png"><img src="female_car_3.png"></button>
+                        <button class="car-btn" data-car="female_car_4.png"><img src="female_car_4.png"></button>
+                    </div>
+                </div>
+                <button id="saveBtn" class="btn">Save & Close</button>
+            </div>
+        </div>
+
+        <div id="leftButton" class="control-btn hidden">◀</div>
+        <div id="rightButton" class="control-btn hidden">▶</div>
+        <div id="preloader" class="screen"><h2>Loading Assets...</h2></div>
+    </div>
+
+    <script>
+    // --- DOM Elements ---
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    const gameContainer = document.getElementById('gameContainer');
     const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton');
-    const startScreen = document.getElementById('startScreen'), characterSelector = document.getElementById('characterSelector');
-    const permissionScreen = document.getElementById('permissionScreen');
+    const startScreen = document.getElementById('startScreen'), gameOverScreen = document.getElementById('gameOverScreen');
     const gameObjectContainer = document.getElementById('gameObjectContainer');
-    const highScoreDisplay = document.getElementById('highScoreDisplay');
-    const maleCharacterBtn = document.getElementById('maleCharacter'), femaleCharacterBtn = document.getElementById('femaleCharacter');
-    const nitroButton = document.getElementById('nitroButton');
-    const powerupStatusContainer = document.getElementById('powerupStatus');
-    const loadingText = document.getElementById('loadingText');
-
-    // --- Sabhi Assets ko yahan pehle se define kiya gaya hai ---
-    let assets = {
-        road: new Image(), playerCar: new Image(), coin: new Image(),
-        obstacle1: new Image(), obstacle2: new Image(), obstacle3: new Image(), obstacle4: new Image(),
-        magnet: new Image(), nitro: new Image(), maleIcon: new Image(), femaleIcon: new Image(),
-        hitSound: new Audio(), carSound: new Audio(), 
-        collectSound: new Audio(), openingSound: new Audio(),
-        voices: {
-            male: { select: new Audio(), start: new Audio(), coin: new Audio(), gameOver: new Audio(), magnet: new Audio(), nitro: new Audio() },
-            female: { select: new Audio(), start: new Audio(), coin: new Audio(), gameOver: new Audio(), magnet: new Audio(), nitro: new Audio() }
-        }
-    };
-    const obstacleImages = [assets.obstacle1, assets.obstacle2, assets.obstacle3, assets.obstacle4];
-
-    // --- YAHAN SABHI LINKS UPDATE KAR DIYE GAYE HAIN ---
-    const assetSources = {
-        road: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg55EgSx9aemVYPwuYaeHARKzptdugkXVRJY83NwRr9g0aZCa69Cp1Nx7kuAsB6DGrSVr-OUV89qHcWbVxQCXNw1THIZeQ9X5DqzdTX3q1KEYyqtnh1bV0eKz3xWF4iiIc2uht0TljE_qnQ6atASo2EDfLWaHMeJIMeCRYEQkab_s6YZ0BUU-RLCON6UTE/s1472/road.jpg',
-        playerCar: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhhZtpRaR15DVDLu3BjAWpTBnLMK1M-wc6gwUcO3DPExTUDnFL-fEA0oafUEzetobqdA5uCiLHGsVEkAeKjes2d3irVN_G14Rsyq2Fr23lyJK2J1F6qDpaROn3BvE8YUJNsN8NS2VKKeyvoUPQoZXdJmm2xdVJK3egidluBbTtCCUHSn3xBEAP225vbR2Q/s2026/player_car.png',
-        coin: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjTQTe-D3wndMDVcrNjbpl0CKUVf9K6ZppgLBtfnesLq2esYxOXL7G8h1ulRPsgXkMT-u2xr9QExcuNo5V40D9ySW3apYCCLHu0k_XwP6aRInQLuXNRd7H6TcYijmDjbd6NeDweJC-RDmn39GZlPD15yedHFz7SplUzrQtCyoioHgeyNJ-Ldym-95gEYbA/s227/images%20(9).png',
-        obstacle1: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYTr5zJhIiJ_RTGK7PxMzI59wVLz44CL5eYPgR-Nr__jaeFmsqy4asbL_TZ1uocLUv7ezMr49smfjj-uotXFJmt2JNZ3ZeZ7TRcS2Yt6KIZOi85UsxkAUvWJGdKXDVPOpcQek8rmXYxduZkfFCOsbRRmwFt_mWio8UXHo4GToDgRCIGAMX_Xc26PfYOJU/s2142/obstacle1.png',
-        obstacle2: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgxbrajO__HmumEjYkrDkQbMACcWFWDHFoMTQdQiQOOweyH72WUB-KkezBbDjOMk3V8TItOkdtmTsgE0C1rQX7l4PCgcSoigW-4IzfDA_V8jYRf2tYfs9Ae7qRYnRrFHE1T_Fnr79llGEPgqUcdm1EfuMGPCqFOUH9RtzCbq_QisNEhnAbwIwsKdwR_KQ0/s2153/obstacle2.png',
-        obstacle3: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhR2wq3HjuSgVSUFqDYyuQgGQcbiLKPJu_OsvliSZzuhwemj-6mJ6_IVC5HR-rVuARCI415Z8zelOL0g10i_GmGXRqzYErfJWZh5-RlgFd7qAEKwDvHktAaT-RmCAPu0A4VIKwQ52tfwm5tNKTRfepI6x2E7j2tBGNVr6rUsnwxsG-igyJBT7Ekm-L2Y3I/s2145/obstacle3.png',
-        obstacle4: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjTdC9xwphaQ1ZD9HTukVUt3qIgSzDBTfQTi6VImDM-ZYuMRkAZ6PS3_WbilIe6GvBCgJntMsEIbBrCRrVHcJ-FDbVPp9vrS3y1NBCOvRZbg9bGpIdM3fEtLQlRayxOOI5uFmGUIcVD-MiXJtwrn9LZHEczssEayObGR6nMTeVXaeCrI-dWJkI-jXuj8vc/s2497/obstacle4.png',
-        maleIcon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh-tiVCZHabTndSaQBvAZjt_8RBFAz07GxgwtLPh5z2IIjEyDNJTyPEw_4BaEPlX8DzwBW7rzlSq8Ffz6M-XKFD9AdmFNqxP3U-5EmsLqYaW2Pvdpf-bg53Lnt0068MFChUV8Kdu608qqDiHnsqCyyxg8NEVboy7o0gGXnf696bQY2ycMLULfWRgVBXwjI/s620/male_icon.png.webp',
-        femaleIcon: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhH8bK9SpMfkSOUi2ECdLxjCkwLHxC_JSt-jJc0aI9dNBY4z-jWLV1ywe4aWYsRgIdtslTDdQtGzPXAnPoZpGC78xKxXeKZqIaCFsVFV016tiav06A1d_iqD0QGXNBgSG9GOfe-WbSS6q6D3V6_Ur-Euz1os3NbgdP-knOOy3gI2EphLdr-ERcc9dvdLCQ/s1200/pngtree-japanese-anime-orange-hair-girl-character-image-png-image_6654423.jpg',
-        
-        // --- BAAD MEIN INKE LINKS BHI DAAL DENA ---
-        magnet: 'LINK_DAALO/magnet.png',
-        nitro: 'LINK_DAALO/nitro.png',
-        hitSound: 'LINK_DAALO/carhit.mp3',
-        carSound: 'LINK_DAALO/carsound.mp3',
-        collectSound: 'LINK_DAALO/collect.wav',
-        openingSound: 'LINK_DAALO/opening.wav',
-        male_select: 'LINK_DAALO/male_select.mp3',
-        male_start: 'LINK_DAALO/male_start.mp3',
-        // ... baaki sabhi audio files ke link ...
-    };
+    const playerCarElement = document.getElementById('playerCarElement');
+    const settingsIcon = document.getElementById('settingsIcon'), settingsScreen = document.getElementById('settingsScreen');
+    const preloader = document.getElementById('preloader');
     
-    // --- Baaki Game Logic Same Hai ---
+    // --- Game State & Variables ---
     let gameState = 'loading', score = 0, highScore = 0;
-    let isMovingLeft = false, isMovingRight = false;
-    let selectedCharacter = null;
-    let isMagnetActive = false, magnetTimer = 0;
-    let isNitroReady = false, isNitroActive = false, nitroTimer = 0;
-    let powerupSpawnTimer = 0;
-    let D_DIMS = {}; 
-    let player = { x: 0, y: 0 };
-    let coins = [], obstacles = [], powerups = [];
+    let isMovingLeft = false, isMovingRight = false, difficultyMultiplier = 1.0;
+    
+    // --- Settings & Audio ---
+    let currentSettings = { character: 'male', car: 'male_car_1.png' };
+    let tempSettings = { ...currentSettings };
+    const audioClips = {}; // Will be populated by preloader
 
-    // --- Asset Loader (ab sirf link se load karega) ---
-    function loadAssets(callback) {
-        let assetsLoaded = 0;
-        const assetKeys = Object.keys(assetSources);
-        const numAssets = assetKeys.length;
+    // --- ENHANCEMENT: Asset Preloader ---
+    const assetsToLoad = {
+        images: ['road.jpg', 'settings_icon.png', 'male_icon.png', 'female_icon.png', 'male_car_1.png', 'male_car_2.png', 'male_car_3.png', 'male_car_4.png', 'female_car_1.png', 'female_car_2.png', 'female_car_3.png', 'female_car_4.png', 'obstacle1.png', 'obstacle2.png', 'obstacle3.png', 'obstacle4.png', 'coin.gif', 'magnet.png'],
+        audio: ['carhit.mp3', 'carsound.mp3', 'collect.wav', 'opening.wav' /* Add other audio files here if you have them */]
+    };
+    const loadedAssets = { images: {} };
+    let assetsLoadedCount = 0;
+    let totalAssets = assetsToLoad.images.length + assetsToLoad.audio.length;
 
-        function assetLoadCallback(key, success) {
-            if (!success) console.warn(`Warning: Asset "${key}" failed to load from URL.`);
-            if (++assetsLoaded >= numAssets) {
-                loadingText.textContent = "Tap to Start";
-                gameState = 'menu';
-                setDimensions();
-                document.getElementById('maleIconImg').src = assets.maleIcon.src;
-                document.getElementById('femaleIconImg').src = assets.femaleIcon.src;
-                callback();
-            }
+    function assetLoaded() {
+        assetsLoadedCount++;
+        preloader.innerHTML = `<h2>Loading... (${Math.round((assetsLoadedCount / totalAssets) * 100)}%)</h2>`;
+        if (assetsLoadedCount === totalAssets) {
+            preloader.classList.add('hidden');
+            init(); // Start the game initialization
         }
-        
-        assetKeys.forEach(key => {
-            const src = assetSources[key];
-            if (!src || src.startsWith('LINK_DAALO')) { // Agar link nahi daala hai to skip
-                return assetLoadCallback(key, false);
-            }
+    }
 
-            const isVoice = key.includes('_');
-            const assetKey = isVoice ? key.split('_')[0] : key;
-            const assetEvent = isVoice ? key.split('_')[1] : null;
-
-            let asset = isVoice ? assets.voices[assetKey][assetEvent] : assets[key];
-            if (!asset) return assetLoadCallback(key, false);
-
-            asset.src = src;
-            if (asset instanceof Image) asset.onload = () => assetLoadCallback(key, true);
-            else if (asset instanceof Audio) asset.oncanplaythrough = () => assetLoadCallback(key, true);
-            asset.onerror = () => assetLoadCallback(key, false);
+    function preloadAssets() {
+        assetsToLoad.images.forEach(fileName => {
+            const img = new Image();
+            img.src = fileName;
+            img.onload = assetLoaded;
+            loadedAssets.images[fileName] = img;
         });
-        assets.carSound.loop = true;
+        assetsToLoad.audio.forEach(fileName => {
+            const audio = new Audio(fileName);
+            audio.addEventListener('canplaythrough', assetLoaded, { once: true });
+            const name = fileName.split('.')[0];
+            audioClips[name] = audio;
+        });
+        audioClips['car'].loop = true;
+    }
+
+    function playAudio(name) {
+        if (audioClips[name]) {
+            audioClips[name].currentTime = 0;
+            audioClips[name].play().catch(e => console.log("Audio play failed. User interaction needed."));
+        }
+    }
+
+    function saveSettings() {
+        currentSettings = { ...tempSettings };
+        localStorage.setItem('carGameSettings', JSON.stringify(currentSettings));
+    }
+
+    function loadSettingsAndScore() {
+        const savedSettings = localStorage.getItem('carGameSettings');
+        if (savedSettings) currentSettings = JSON.parse(savedSettings);
+        tempSettings = { ...currentSettings };
+
+        highScore = parseInt(localStorage.getItem('carGameHighScore') || '0');
+        document.getElementById('highScoreDisplay').innerText = `High Score: ${highScore}`;
     }
     
-    // Baaki sabhi game functions bina kisi badlav ke yahan se shuru hote hain
-    function playVoice(event) { if (!selectedCharacter) return; Object.values(assets.voices.male).forEach(s => { s.pause(); s.currentTime = 0; }); Object.values(assets.voices.female).forEach(s => { s.pause(); s.currentTime = 0; }); const sound = assets.voices[selectedCharacter][event]; if (sound && sound.readyState >= 2) { sound.play().catch(e => console.warn("Voice play failed:", e)); } }
-    function init() { highScore = localStorage.getItem('carGameHighScore') || 0; document.getElementById('easyButton').addEventListener('click', () => startGame(1.0)); document.getElementById('mediumButton').addEventListener('click', () => startGame(1.15)); document.getElementById('hardButton').addEventListener('click', () => startGame(1.3)); maleCharacterBtn.addEventListener('click', () => { selectedCharacter = 'male'; playVoice('select'); showStartScreen(); }); femaleCharacterBtn.addEventListener('click', () => { selectedCharacter = 'female'; playVoice('select'); showStartScreen(); }); nitroButton.addEventListener('click', activateNitro); const handleTouch = (e, val) => { e.preventDefault(); isMovingLeft = val === -1; isMovingRight = val === 1; }; const stopMove = () => { isMovingLeft = false; isMovingRight = false; }; leftButton.addEventListener('mousedown', () => isMovingLeft = true); leftButton.addEventListener('mouseup', stopMove); leftButton.addEventListener('touchstart', (e) => handleTouch(e, -1)); leftButton.addEventListener('touchend', stopMove); rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', stopMove); rightButton.addEventListener('touchstart', (e) => handleTouch(e, 1)); rightButton.addEventListener('touchend', stopMove); permissionScreen.addEventListener('click', () => { if (gameState === 'menu') { permissionScreen.classList.add('hidden'); showCharacterSelectionScreen(); } }); requestAnimationFrame(gameLoop); }
-    function startGame(difficulty) { D_DIMS.difficultyMultiplier = difficulty; setDimensions(); assets.openingSound.pause(); characterSelector.classList.add('hidden'); startScreen.classList.add('hidden'); highScoreDisplay.classList.add('hidden'); leftButton.classList.remove('hidden'); rightButton.classList.remove('hidden'); gameState = 'playing'; resetGame(); player.element.classList.remove('hidden'); if(assets.carSound.readyState >= 2) { assets.carSound.currentTime = 0; assets.carSound.play(); } playVoice('start'); }
-    let roadY1 = 0, roadY2 = 0;
-    function update() { let currentRoadSpeed = (gameState === 'menu') ? D_DIMS.roadSpeed * 0.5 : (isNitroActive ? D_DIMS.roadSpeed * 3 : D_DIMS.roadSpeed); roadY1 += currentRoadSpeed; roadY2 += currentRoadSpeed; if (roadY1 >= canvas.height) roadY1 = roadY2 - canvas.height; if (roadY2 >= canvas.height) roadY2 = roadY1 - canvas.height; if (gameState !== 'playing') return; if (isMovingLeft) player.x -= D_DIMS.playerCarSpeed; if (isMovingRight) player.x += D_DIMS.playerCarSpeed; player.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(player.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); player.element.style.left = `${player.x}px`; spawnObjects(); updateGameObjects(coins, currentRoadSpeed); updateGameObjects(obstacles, currentRoadSpeed); updateGameObjects(powerups, currentRoadSpeed); handleCollisions(); updatePowerups(); }
-    function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); if(assets.road.complete && assets.road.naturalHeight !== 0){ ctx.drawImage(assets.road, 0, roadY1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, roadY2, canvas.width, canvas.height); } if (gameState === 'playing' || gameState === 'gameOver') { drawScore(); } if (isNitroActive) { ctx.fillStyle = "rgba(0, 150, 255, 0.2)"; ctx.fillRect(0, 0, canvas.width, canvas.height); } }
-    function gameLoop() { update(); draw(); if (gameState === 'gameOver') { drawGameOver(); } requestAnimationFrame(gameLoop); }
-    function gameOver() { if (gameState === 'gameOver') return; gameState = 'gameOver'; assets.carSound.pause(); if(assets.hitSound.readyState >= 2) assets.hitSound.play(); playVoice('gameOver'); if (score > highScore) { highScore = score; localStorage.setItem('carGameHighScore', highScore); } player.element.style.transform = "rotate(30deg) scale(0.9)"; setTimeout(showCharacterSelectionScreen, 2500); }
-    let obstacleSpawnTimer = 0, coinSpawnTimer = 0;
-    function spawnObjects() { obstacleSpawnTimer++; if (obstacleSpawnTimer > 120 / D_DIMS.difficultyMultiplier) { const obstacleImg = obstacleImages[Math.floor(Math.random() * obstacleImages.length)]; obstacles.push(createGameObject(obstacleImg, 'obstacle-car', D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > 180 / D_DIMS.difficultyMultiplier) { coins.push(createGameObject(assets.coin, 'coin', D_DIMS.coinSize, D_DIMS.coinSize)); coinSpawnTimer = 0; } powerupSpawnTimer++; if (powerupSpawnTimer > 600) { let type = Math.random() > 0.5 ? 'magnet' : 'nitro'; if (type === 'nitro' && isNitroReady) return; if(assets[type].complete && assets[type].naturalHeight !==0) {powerups.push(createGameObject(assets[type], 'powerup', D_DIMS.coinSize, D_DIMS.coinSize, 0, type));} powerupSpawnTimer = 0; } }
-    function handleCollisions() { const playerRect = player.element.getBoundingClientRect(); for (let obj of obstacles) { if (checkCollision(playerRect, obj.element.getBoundingClientRect())) { gameOver(); return; } } for (let i = coins.length - 1; i >= 0; i--) { if (checkCollision(playerRect, coins[i].element.getBoundingClientRect())) { score += 5; if (score % 50 === 0) playVoice('coin'); if(assets.collectSound.readyState >= 2) assets.collectSound.play(); coins[i].element.remove(); coins.splice(i, 1); } } for (let i = powerups.length - 1; i >= 0; i--) { if (checkCollision(playerRect, powerups[i].element.getBoundingClientRect())) { if (powerups[i].powerupType === 'magnet') { isMagnetActive = true; magnetTimer = 300; playVoice('magnet'); } else if (powerups[i].powerupType === 'nitro') { isNitroReady = true; nitroButton.classList.remove('hidden'); playVoice('nitro'); } powerups[i].element.remove(); powerups.splice(i, 1); } } }
-    function updatePowerups() { powerupStatusContainer.innerHTML = ''; if (isMagnetActive) { magnetTimer--; if (magnetTimer <= 0) isMagnetActive = false; else addPowerupStatus(assets.magnet.src, `${Math.ceil(magnetTimer/60)}s`); } if (isNitroActive) { nitroTimer--; if (nitroTimer <= 0) isNitroActive = false; } }
-    function createGameObject(imageAsset, className, width, height, speed = 0, powerupType = null) { const el = document.createElement('img'); el.src = imageAsset.src; el.className = `game-object ${className}`; Object.assign(el.style, { width: `${width}px`, height: `${height}px`, top: `-${height}px` }); const x = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary; el.style.left = `${x}px`; gameObjectContainer.appendChild(el); return { element: el, x, y: -height, width, height, speed, powerupType }; }
-    function resetGame() { gameObjectContainer.innerHTML = ''; coins = []; obstacles = []; powerups = []; score = 0; isMagnetActive = false; isNitroActive = false; isNitroReady = false; powerupSpawnTimer = 0; if (player.element) player.element.remove(); const playerObj = createGameObject(assets.playerCar, 'player-car', D_DIMS.playerCarWidth, D_DIMS.playerCarHeight); player.element = playerObj.element; player.x = canvas.width/2 - D_DIMS.playerCarWidth/2; player.y = canvas.height - D_DIMS.playerCarHeight - 40; player.element.style.left = `${player.x}px`; player.element.style.top = `${player.y}px`; player.element.style.transform = ''; roadY1 = 0; roadY2 = -canvas.height; }
-    function updateGameObjects(objectArray, roadSpeed) { for (let i = objectArray.length - 1; i >= 0; i--) { const obj = objectArray[i]; if(obj.powerupType === null && isMagnetActive) { let dx = (player.x + D_DIMS.playerCarWidth/2) - (obj.x + obj.width/2); let dy = (player.y + D_DIMS.playerCarHeight/2) - (obj.y + obj.height/2); if(Math.sqrt(dx*dx + dy*dy) < canvas.width * 0.5) { obj.x += dx * 0.1; obj.y += dy * 0.1; obj.element.style.left = `${obj.x}px`; } } obj.y += (obj.speed || D_DIMS.coinSpeed) + roadSpeed; obj.element.style.top = `${obj.y}px`; if (obj.y > canvas.height) { obj.element.remove(); objectArray.splice(i, 1); } } }
-    function showCharacterSelectionScreen() { setDimensions(); resetGame(); gameState = 'menu'; startScreen.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); nitroButton.classList.add('hidden'); highScoreDisplay.innerHTML = `High Score: ${highScore}`; highScoreDisplay.classList.remove('hidden'); characterSelector.classList.remove('hidden'); if(assets.openingSound.readyState >= 2) { assets.openingSound.currentTime = 0; assets.openingSound.play();} }
-    function showStartScreen() { characterSelector.classList.add('hidden'); startScreen.classList.remove('hidden'); }
-    function activateNitro() { if (!isNitroReady || isNitroActive) return; isNitroReady = false; isNitroActive = true; nitroTimer = 180; nitroButton.classList.add('hidden'); }
-    function addPowerupStatus(iconSrc, text) { powerupStatusContainer.innerHTML += `<div class="status-item"><img src="${iconSrc}"><span>${text}</span></div>`; }
-    function drawScore() { ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(10, 10, 200, 50); ctx.fillStyle = 'white'; ctx.font = 'bold 24px Poppins'; ctx.textAlign = 'left'; ctx.fillText(`Score: ${score}`, 25, 42); }
-    function drawGameOver() { ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'white'; ctx.font = `bold ${canvas.width * 0.12}px Poppins`; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 40); ctx.font = `bold ${canvas.width * 0.06}px Poppins`; ctx.fillText(`Your Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20); }
-    setDimensions = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; Object.assign(D_DIMS, { roadLeftBoundary: canvas.width * 0.25, roadRightBoundary: canvas.width * 0.75, playerCarWidth: canvas.width * 0.12, playerCarHeight: (canvas.width * 0.12) * 1.8, playerCarSpeed: canvas.width * 0.015, obstacleBaseSpeed: canvas.height * 0.004, coinSpeed: canvas.height * 0.006 }); D_DIMS.obstacleWidth = D_DIMS.playerCarWidth; D_DIMS.obstacleHeight = D_DIMS.playerCarHeight; D_DIMS.coinSize = D_DIMS.playerCarWidth * 0.6; D_DIMS.roadSpeed = D_DIMS.obstacleBaseSpeed * (D_DIMS.difficultyMultiplier || 1); roadY2 = -canvas.height; };
-    checkCollision = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    // --- Game Objects & State ---
+    let D_DIMS = {}; 
+    const playerCar = { element: playerCarElement, x: 0, y: 0 };
+    const road = { y1: 0, y2: 0 };
+    let coins = [], obstacles = [], magnets = [];
+    let coinSpawnTimer = 0, obstacleSpawnTimer = 0, magnetSpawnTimer = 0;
+    let isMagnetActive = false, magnetTimer = 0;
 
-    loadAssets(init);
-</script>
+    const BASE_PLAYER_SPEED_MULTIPLIER = 0.0216;
+    const BASE_ROAD_SPEED_MULTIPLIER = 0.006;
+    
+    function setDimensions() {
+        canvas.width = gameContainer.clientWidth; canvas.height = gameContainer.clientHeight;
+        D_DIMS.roadLeftBoundary = canvas.width * 0.20; D_DIMS.roadRightBoundary = canvas.width * 0.80;
+        D_DIMS.playerCarWidth = canvas.width * 0.11; D_DIMS.playerCarHeight = D_DIMS.playerCarWidth * 2;
+        D_DIMS.playerCarSpeed = canvas.width * BASE_PLAYER_SPEED_MULTIPLIER;
+        D_DIMS.obstacleBaseSpeed = canvas.height * BASE_ROAD_SPEED_MULTIPLIER;
+        D_DIMS.coinSize = canvas.width * 0.08;
+    }
+
+    function startGame(difficulty) {
+        difficultyMultiplier = difficulty;
+        audioClips.opening.pause();
+        startScreen.classList.add('hidden');
+        settingsIcon.classList.add('hidden');
+        leftButton.classList.remove('hidden');
+        rightButton.classList.remove('hidden');
+        resetGame();
+        gameState = 'playing';
+        playerCar.element.classList.remove('hidden');
+        playAudio('car');
+    }
+    
+    function init() {
+        loadSettingsAndScore();
+        setDimensions();
+        showStartScreen();
+        gameLoop();
+
+        window.addEventListener('resize', setDimensions); // <-- BUG FIX: Handle window resize
+
+        document.getElementById('easyButton').addEventListener('click', () => startGame(1.0));
+        document.getElementById('mediumButton').addEventListener('click', () => startGame(1.15));
+        document.getElementById('hardButton').addEventListener('click', () => startGame(1.3));
+        document.getElementById('playAgainBtn').addEventListener('click', showStartScreen);
+
+        settingsIcon.addEventListener('click', () => { tempSettings = { ...currentSettings }; updateSettingsUI(); settingsScreen.classList.add('active'); });
+        document.getElementById('saveBtn').addEventListener('click', () => { saveSettings(); settingsScreen.classList.remove('active'); });
+        document.querySelectorAll('.char-btn').forEach(btn => btn.addEventListener('click', () => { tempSettings.character = btn.dataset.char; updateSettingsUI(); }));
+        document.querySelectorAll('.car-btn').forEach(btn => btn.addEventListener('click', () => { tempSettings.car = btn.dataset.car; updateSettingsUI(); }));
+
+        const handleTouchStart = (e) => e.preventDefault();
+        leftButton.addEventListener('mousedown', () => isMovingLeft = true); leftButton.addEventListener('mouseup', () => isMovingLeft = false); leftButton.addEventListener('mouseleave', () => isMovingLeft = false); leftButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingLeft = true; }); leftButton.addEventListener('touchend', () => isMovingLeft = false);
+        rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', () => isMovingRight = false); rightButton.addEventListener('mouseleave', () => isMovingRight = false); rightButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingRight = true; }); rightButton.addEventListener('touchend', () => isMovingRight = false);
+    }
+
+    function updateSettingsUI() {
+        document.querySelectorAll('.char-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.char === tempSettings.character));
+        const showMaleCars = tempSettings.character === 'male';
+        document.getElementById('maleCarSelector').classList.toggle('hidden', !showMaleCars);
+        document.getElementById('femaleCarSelector').classList.toggle('hidden', showMaleCars);
+        document.querySelectorAll('.car-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.car === tempSettings.car));
+    }
+
+    function update() {
+        const roadSpeed = D_DIMS.obstacleBaseSpeed * difficultyMultiplier;
+        road.y1 += roadSpeed; road.y2 += roadSpeed;
+        if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height;
+        if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height;
+
+        if (gameState !== 'playing') return;
+
+        if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed;
+        if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed;
+        playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth));
+        playerCar.element.style.left = `${playerCar.x}px`;
+        
+        if (++obstacleSpawnTimer > 100 / difficultyMultiplier) { obstacles.push(createGameObject('obstacle', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.playerCarWidth, D_DIMS.playerCarHeight, roadSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; }
+        if (++coinSpawnTimer > 120 / difficultyMultiplier) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, roadSpeed)); coinSpawnTimer = 0; }
+        if (++magnetSpawnTimer > 800 / difficultyMultiplier) { magnets.push(createGameObject('magnet', 'magnet.png', D_DIMS.coinSize, D_DIMS.coinSize, roadSpeed)); magnetSpawnTimer = 0; }
+        
+        if (isMagnetActive && ++magnetTimer > 300) { isMagnetActive = false; magnetTimer = 0; }
+
+        updateAndCheck(magnets, () => { isMagnetActive = true; magnetTimer = 0; });
+        updateAndCheck(obstacles, () => { audioClips.car.pause(); playAudio('hit'); gameState = 'gameOver'; showGameOver(); });
+        updateAndCheck(coins, () => { score += 5; playAudio('collect'); });
+    }
+
+    function updateAndCheck(arr, onCollision) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            const obj = arr[i];
+            if (isMagnetActive && obj.element.classList.contains('coin')) {
+                const dx = (playerCar.x + D_DIMS.playerCarWidth / 2) - (obj.x + obj.width / 2);
+                const dy = (playerCar.y + D_DIMS.playerCarHeight / 2) - (obj.y + obj.height / 2);
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < canvas.width / 2) { obj.x += dx / dist * 5; obj.y += dy / dist * 5; obj.element.style.left = `${obj.x}px`; }
+            }
+            obj.y += obj.speed;
+            obj.element.style.top = `${obj.y}px`;
+
+            if (checkCollision(playerCar, obj)) {
+                onCollision(obj);
+                gameObjectContainer.removeChild(obj.element); arr.splice(i, 1);
+            } else if (obj.y > canvas.height) {
+                gameObjectContainer.removeChild(obj.element); arr.splice(i, 1);
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // <-- BUG FIX: Use preloaded image instead of creating a new one every frame
+        const roadImg = loadedAssets.images['road.jpg'];
+        if(roadImg.complete) {
+            ctx.drawImage(roadImg, 0, road.y1, canvas.width, canvas.height);
+            ctx.drawImage(roadImg, 0, road.y2, canvas.width, canvas.height);
+        }
+        
+        if (gameState === 'playing') {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(10, 10, 220, 50);
+            ctx.fillStyle = 'white'; ctx.font = 'bold 24px Arial';
+            ctx.fillText('Score: ' + score, 20, 42);
+        }
+    }
+
+    function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+    
+    function resetGame() {
+        gameObjectContainer.innerHTML = ''; // Clear all old game objects
+        playerCar.element = document.createElement('img');
+        playerCar.element.id = 'playerCarElement'; playerCar.element.className = 'game-object';
+        playerCar.element.src = currentSettings.car;
+        playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`; playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`;
+        gameObjectContainer.appendChild(playerCar.element);
+        
+        playerCar.x = (canvas.width / 2) - (D_DIMS.playerCarWidth / 2);
+        playerCar.y = canvas.height - D_DIMS.playerCarHeight - 20;
+        playerCar.element.style.top = `${playerCar.y}px`;
+        
+        obstacles = []; coins = []; magnets = [];
+        score = 0; road.y1 = 0; road.y2 = -canvas.height;
+        isMagnetActive = false; magnetTimer = 0;
+    }
+
+    function showStartScreen() {
+        gameOverScreen.classList.add('hidden');
+        resetGame();
+        gameState = 'menu';
+        playerCar.element.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+        settingsIcon.classList.remove('hidden');
+        leftButton.classList.add('hidden');
+        rightButton.classList.add('hidden');
+        playAudio('opening');
+    }
+    
+    // --- ENHANCEMENT: Better Game Over ---
+    function showGameOver() {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('carGameHighScore', highScore);
+            document.getElementById('highScoreDisplay').innerText = `High Score: ${highScore}`;
+        }
+        document.getElementById('finalScore').innerText = `Score: ${score}`;
+        document.getElementById('gameOverHighScore').innerText = `High Score: ${highScore}`;
+        
+        leftButton.classList.add('hidden');
+        rightButton.classList.add('hidden');
+        gameOverScreen.classList.remove('hidden');
+    }
+
+    function createGameObject(type, src, width, height, speed) {
+        const element = document.createElement('img');
+        element.src = src; element.className = `game-object ${type}`;
+        element.style.width = `${width}px`; element.style.height = `${height}px`;
+        const x = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary;
+        const y = -height;
+        element.style.left = `${x}px`; element.style.top = `${y}px`;
+        gameObjectContainer.appendChild(element);
+        return { element, x, y, width, height, speed };
+    }
+
+    function checkCollision(obj1, obj2) {
+        const rect1 = obj1.element.getBoundingClientRect();
+        const rect2 = obj2.element.getBoundingClientRect();
+        return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom);
+    }
+    
+    // Start Preloading assets, which will then trigger init()
+    preloadAssets();
+
+    </script>
 </body>
 </html>
