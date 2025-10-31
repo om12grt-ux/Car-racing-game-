@@ -10,9 +10,10 @@
         #gameContainer { position: relative; width: 100vw; height: 100vh; -webkit-tap-highlight-color: transparent; overflow: hidden; }
         canvas { width: 100%; height: 100%; display: block; }
         
+        /* --- YAHAN BADLAV KIYA GAYA HAI --- */
         .control-btn {
             position: absolute;
-            bottom: 60px;
+            bottom: 60px; /* 20px se 60px kar diya hai */
             width: 70px;
             height: 70px;
             background-color: rgba(0, 0, 0, 0.4);
@@ -28,6 +29,7 @@
             user-select: none;
             z-index: 10;
         }
+        /* --- BADLAV KHATM --- */
 
         .control-btn:active { background-color: rgba(255, 255, 255, 0.3); }
         #leftButton { left: 20px; }
@@ -46,35 +48,6 @@
         .difficulty-btn:active { box-shadow: 0 2px #666; transform: translateY(3px); animation: none; }
 
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 5px #666; } 50% { transform: scale(1.05); box-shadow: 0 8px 15px rgba(76, 175, 80, 0.7); } 100% { transform: scale(1); box-shadow: 0 5px #666; } }
-        
-        /* --- CHARACTER SELECTION KE LIYE NAYI STYLING --- */
-        .char-btn {
-            cursor: pointer;
-            background-color: rgba(0, 0, 0, 0.4);
-            color: white;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            font-weight: bold;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-            width: 120px;
-            max-width: 30vw;
-            transition: all 0.2s ease;
-        }
-        .char-btn.selected {
-            border: 4px solid #4CAF50;
-            box-shadow: 0 0 15px #4CAF50;
-            transform: scale(1.1);
-        }
-        .char-icon {
-            width: 80%;
-            height: auto;
-            margin-bottom: 10px;
-        }
-        /* --- STYLING KHATAM --- */
-
         .hidden { display: none !important; }
         .game-object { position: absolute; filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.5)); }
         .coin { z-index: 2; }
@@ -96,41 +69,20 @@
         <div id="popupContainer"></div>
         <div id="leftButton" class="control-btn hidden">◀</div>
         <div id="rightButton" class="control-btn hidden">▶</div>
-
-        <!-- === START SCREEN KA HTML UPDATE KIYA GAYA HAI === -->
         <div id="startScreen" class="hidden">
             <h1>Car Racing</h1>
-
-            <div id="characterSelector" style="margin-bottom: 30px; text-align: center;">
-                <h2 style="font-size: 5vw; margin-bottom: 15px; color: #eee;">Select Character</h2>
-                <div style="display: flex; gap: 20px; justify-content: center;">
-                    <button id="maleCharBtn" class="char-btn selected">
-                        <img src="male_icon.png" class="char-icon">
-                        <span>Male</span>
-                    </button>
-                    <button id="femaleCharBtn" class="char-btn">
-                        <img src="female_icon.png" class="char-icon">
-                        <span>Female</span>
-                    </button>
-                </div>
-            </div>
-            
             <div id="difficultySelector">
                 <button id="easyButton" class="difficulty-btn">Easy</button>
                 <button id="mediumButton" class="difficulty-btn">Medium</button>
                 <button id="hardButton" class="difficulty-btn">Hard</button>
             </div>
         </div>
-        <!-- === HTML UPDATE KHATAM === -->
-
         <div id="permissionScreen">
             <h2>Tap to Start</h2>
         </div>
     </div>
 
     <script>
-        // --- SCRIPT MEIN BADLAV KIYE GAYE HAIN ---
-
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
         const gameContainer = document.getElementById('gameContainer');
         const leftButton = document.getElementById('leftButton'); const rightButton = document.getElementById('rightButton');
@@ -143,13 +95,8 @@
         const permissionScreen = document.getElementById('permissionScreen');
         const popupContainer = document.getElementById('popupContainer');
 
-        // Character selection buttons
-        const maleCharBtn = document.getElementById('maleCharBtn');
-        const femaleCharBtn = document.getElementById('femaleCharBtn');
-
         let gameState = 'menu'; let score = 0; let isMovingLeft = false; let isMovingRight = false;
         let difficultyMultiplier = 1.0;
-        let selectedCharacter = 'male'; // By default, male is selected
 
         let assets = { road: new Image(), hitSound: new Audio(), carSound: new Audio(), collectSound: new Audio(), openingSound: new Audio() };
         const assetSources = { road: 'road.jpg', hitSound: 'carhit.mp3', carSound: 'carsound.mp3', collectSound: 'collect.wav', openingSound: 'opening.wav' };
@@ -163,52 +110,14 @@
         const BASE_PLAYER_SPEED_MULTIPLIER = 0.0216;
         const BASE_ROAD_SPEED_MULTIPLIER = 0.006;
 
-        // --- COMMENTARY FEATURE KE LIYE NAYA CODE ---
-        const synth = window.speechSynthesis;
-        let commentaryEnabled = false;
-
-        function speak(text) {
-            if (commentaryEnabled && synth.speaking) {
-                console.log('Speech synthesis is already speaking.');
-                return;
-            }
-            if (commentaryEnabled) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'hi-IN'; // Hindi commentary
-                synth.speak(utterance);
-            }
-        }
-
-        const commentary = {
-            gameStart: [
-                "Chaliye, race shuru karte hain!",
-                "Get ready for the race!",
-                "Let's burn some rubber!",
-            ],
-            coinCollect: [
-                "Badhiya! Coin mil gaya!",
-                "Great! You got a coin!",
-                "Keep collecting!",
-            ],
-            gameOver: [
-                "Oh no! Game over.",
-                "Better luck next time.",
-                "You crashed!",
-            ]
-        };
-
-        function getRandomCommentary(type) {
-            const messages = commentary[type];
-            return messages[Math.floor(Math.random() * messages.length)];
-        }
-        // --- COMMENTARY FEATURE KA CODE KHATAM ---
-
         function setDimensions() {
             canvas.width = gameContainer.clientWidth; canvas.height = gameContainer.clientHeight;
             D_DIMS.roadLeftBoundary = canvas.width * 0.30; D_DIMS.roadRightBoundary = canvas.width * 0.70;
             D_DIMS.playerCarWidth = canvas.width * 0.11; D_DIMS.playerCarHeight = D_DIMS.playerCarWidth * 2;
+            
             D_DIMS.playerCarSpeed = canvas.width * BASE_PLAYER_SPEED_MULTIPLIER * difficultyMultiplier;
             D_DIMS.obstacleBaseSpeed = canvas.height * BASE_ROAD_SPEED_MULTIPLIER * difficultyMultiplier;
+            
             D_DIMS.obstacleWidth = D_DIMS.playerCarWidth * 0.75; D_DIMS.obstacleHeight = D_DIMS.playerCarHeight * 0.75;
             D_DIMS.coinSize = canvas.width * 0.15;
             D_DIMS.coinSpeed = D_DIMS.obstacleBaseSpeed; 
@@ -226,72 +135,35 @@
             playerCar.element.classList.remove('hidden');
             assets.carSound.currentTime = 0;
             assets.carSound.play();
-            speak(getRandomCommentary('gameStart'));
         }
         
-        // init() FUNCTION KO UPDATE KIYA GAYA HAI
         function init() {
-            // Character selection logic
-            maleCharBtn.addEventListener('click', () => {
-                selectedCharacter = 'male';
-                maleCharBtn.classList.add('selected');
-                femaleCharBtn.classList.remove('selected');
+            easyButton.addEventListener('click', () => {
+                difficultyMultiplier = 1.0; // Easy
+                startGame();
             });
-            femaleCharBtn.addEventListener('click', () => {
-                selectedCharacter = 'female';
-                femaleCharBtn.classList.add('selected');
-                maleCharBtn.classList.remove('selected');
+            mediumButton.addEventListener('click', () => {
+                difficultyMultiplier = 1.1; // Medium: 10% tez
+                startGame();
             });
-
-            // Difficulty selection logic
-            easyButton.addEventListener('click', () => { difficultyMultiplier = 1.0; startGame(); });
-            mediumButton.addEventListener('click', () => { difficultyMultiplier = 1.1; startGame(); });
-            hardButton.addEventListener('click', () => { difficultyMultiplier = 1.21; startGame(); });
+            hardButton.addEventListener('click', () => {
+                difficultyMultiplier = 1.21; // Hard: Medium se 10% aur tez (1.1 * 1.1)
+                startGame();
+            });
             
             const handleTouchStart = (e) => e.preventDefault();
             leftButton.addEventListener('mousedown', () => isMovingLeft = true); leftButton.addEventListener('mouseup', () => isMovingLeft = false); leftButton.addEventListener('mouseleave', () => isMovingLeft = false); leftButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingLeft = true; }); leftButton.addEventListener('touchend', () => isMovingLeft = false);
             rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', () => isMovingRight = false); rightButton.addEventListener('mouseleave', () => isMovingRight = false); rightButton.addEventListener('touchstart', (e) => { handleTouchStart(e); isMovingRight = true; }); rightButton.addEventListener('touchend', () => isMovingRight = false);
-            permissionScreen.addEventListener('click', () => { 
-                permissionScreen.classList.add('hidden'); 
-                commentaryEnabled = true; // Enable commentary after user interaction
-                showStartScreen(); 
-                gameLoop(); 
-            }, { once: true });
+            permissionScreen.addEventListener('click', () => { permissionScreen.classList.add('hidden'); showStartScreen(); gameLoop(); }, { once: true });
         }
         
+        // --- Baaki ka JS code bina kisi badlav ke ---
         loadAssets = function(callback) { let assetsLoaded = 0; const numAssets = 5; function assetLoaded() { if (++assetsLoaded === numAssets) callback(); } assets.road.src = assetSources.road; assets.road.onload = assetLoaded; assets.hitSound.src = assetSources.hitSound; assets.hitSound.oncanplaythrough = assetLoaded; assets.carSound.src = assetSources.carSound; assets.carSound.loop = true; assets.carSound.oncanplaythrough = assetLoaded; assets.collectSound.src = assetSources.collectSound; assets.collectSound.oncanplaythrough = assetLoaded; assets.openingSound.src = assetSources.openingSound; assets.openingSound.oncanplaythrough = assetLoaded; }
         createScorePopup = function(x, y) { const popup = document.createElement('div'); popup.innerText = '+5'; popup.className = 'score-popup'; popup.style.left = `${x}px`; popup.style.top = `${y}px`; popupContainer.appendChild(popup); setTimeout(() => { popup.remove(); }, 1000); }
-        update = function() { road.y1 += D_DIMS.roadSpeed; road.y2 += D_DIMS.roadSpeed; if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height; if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height; if (gameState !== 'playing') return; if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed; if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed; playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); playerCar.element.style.left = `${playerCar.x}px`; obstacleSpawnTimer++; if (obstacleSpawnTimer > obstacleSpawnInterval) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > coinSpawnInterval) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.coinSpeed)); coinSpawnTimer = 0; } for (let i = coins.length - 1; i >= 0; i--) { const coin = coins[i]; coin.y += coin.speed; coin.element.style.top = `${coin.y}px`; if (checkCollision(playerCar, coin)) { score += 5; assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(coin.x, coin.y); gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); speak(getRandomCommentary('coinCollect')); } else if (coin.y > canvas.height) { gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); } } for (let i = obstacles.length - 1; i >= 0; i--) { const obstacle = obstacles[i]; obstacle.y += obstacle.speed; obstacle.element.style.top = `${obstacle.y}px`; if (checkCollision(playerCar, obstacle)) { assets.carSound.pause(); assets.hitSound.currentTime = 0; assets.hitSound.play(); gameState = 'gameOver'; speak(getRandomCommentary('gameOver')); setTimeout(showStartScreen, 2000); return; } else if (obstacle.y > canvas.height) { gameObjectContainer.removeChild(obstacle.element); obstacles.splice(i, 1); } } }
+        update = function() { road.y1 += D_DIMS.roadSpeed; road.y2 += D_DIMS.roadSpeed; if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height; if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height; if (gameState !== 'playing') return; if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed; if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed; playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); playerCar.element.style.left = `${playerCar.x}px`; obstacleSpawnTimer++; if (obstacleSpawnTimer > obstacleSpawnInterval) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > coinSpawnInterval) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.coinSpeed)); coinSpawnTimer = 0; } for (let i = coins.length - 1; i >= 0; i--) { const coin = coins[i]; coin.y += coin.speed; coin.element.style.top = `${coin.y}px`; if (checkCollision(playerCar, coin)) { score += 5; assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(coin.x, coin.y); gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); } else if (coin.y > canvas.height) { gameObjectContainer.removeChild(coin.element); coins.splice(i, 1); } } for (let i = obstacles.length - 1; i >= 0; i--) { const obstacle = obstacles[i]; obstacle.y += obstacle.speed; obstacle.element.style.top = `${obstacle.y}px`; if (checkCollision(playerCar, obstacle)) { assets.carSound.pause(); assets.hitSound.currentTime = 0; assets.hitSound.play(); gameState = 'gameOver'; setTimeout(showStartScreen, 2000); return; } else if (obstacle.y > canvas.height) { gameObjectContainer.removeChild(obstacle.element); obstacles.splice(i, 1); } } }
         draw = function() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.filter = `saturate(130%) brightness(110%) contrast(120%)`; ctx.drawImage(assets.road, 0, road.y1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, road.y2, canvas.width, canvas.height); ctx.filter = 'none'; if (gameState !== 'menu') { draw3DScoreBox(score); } }
         gameLoop = function() { update(); draw(); if (gameState === 'gameOver') { drawGameOver(); } requestAnimationFrame(gameLoop); }
-        
-        // resetGame() FUNCTION KO UPDATE KIYA GAYA HAI
-        resetGame = function() {
-            popupContainer.innerHTML = '';
-            gameObjectContainer.innerHTML = '';
-            playerCar.element = document.createElement('img');
-            playerCar.element.id = 'playerCarElement';
-            playerCar.element.className = 'game-object';
-            
-            // Yahan badlav kiya gaya hai to select correct car image
-            playerCar.element.src = `player_${selectedCharacter}.png`;
-            
-            playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`;
-            playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`;
-            gameObjectContainer.appendChild(playerCar.element);
-            playerCar.x = (canvas.width / 2) - (D_DIMS.playerCarWidth / 2);
-            playerCar.y = canvas.height - D_DIMS.playerCarHeight - 80;
-            playerCar.element.style.left = `${playerCar.x}px`;
-            playerCar.element.style.top = `${playerCar.y}px`;
-            obstacles = [];
-            obstacleSpawnTimer = 0;
-            coins = [];
-            coinSpawnTimer = 0;
-            score = 0;
-            road.y1 = 0;
-            road.y2 = -canvas.height;
-        }
-
+        resetGame = function() { popupContainer.innerHTML = ''; gameObjectContainer.innerHTML = ''; playerCar.element = document.createElement('img'); playerCar.element.id = 'playerCarElement'; playerCar.element.className = 'game-object'; playerCar.element.src = 'player_car.png'; playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`; playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`; gameObjectContainer.appendChild(playerCar.element); playerCar.x = (canvas.width / 2) - (D_DIMS.playerCarWidth / 2); playerCar.y = canvas.height - D_DIMS.playerCarHeight - 80; playerCar.element.style.left = `${playerCar.x}px`; playerCar.element.style.top = `${playerCar.y}px`; obstacles = []; obstacleSpawnTimer = 0; coins = []; coinSpawnTimer = 0; score = 0; road.y1 = 0; road.y2 = -canvas.height; }
         showStartScreen = function() { setDimensions(); resetGame(); gameState = 'menu'; playerCar.element.classList.add('hidden'); startScreen.classList.remove('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); assets.openingSound.currentTime = 0; assets.openingSound.play(); }
         createGameObject = function(type, src, width, height, speed = 0) { const element = document.createElement('img'); element.src = src; element.className = `game-object ${type}`; element.style.width = `${width}px`; element.style.height = `${height}px`; const randomX = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary; element.style.left = `${randomX}px`; element.style.top = `-${height}px`; gameObjectContainer.appendChild(element); return { element, x: randomX, y: -height, width, height, speed }; }
         function checkCollision(obj1, obj2) { const rect1 = obj1.element.getBoundingClientRect(); const rect2 = obj2.element.getBoundingClientRect(); return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom); }
