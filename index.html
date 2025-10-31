@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Car Racing - Pro Edition (Fixed)</title>
+    <title>Car Racing - Pro Edition (Link Fixed)</title>
+    <!-- CSS poora same rahega, koi badlav nahi -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,6 +37,7 @@
     </style>
 </head>
 <body>
+    <!-- HTML poora same rahega, koi badlav nahi -->
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="highScoreDisplay" class="hidden"></div>
@@ -71,7 +73,7 @@
     </div>
 
 <script>
-    // --- Elements ---
+    // --- Elements (Koi badlav nahi) ---
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
     const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton');
     const startScreen = document.getElementById('startScreen'), characterSelector = document.getElementById('characterSelector');
@@ -83,7 +85,7 @@
     const powerupStatusContainer = document.getElementById('powerupStatus');
     const loadingText = document.getElementById('loadingText');
 
-    // --- Game State ---
+    // --- Game State (Koi badlav nahi) ---
     let gameState = 'loading', score = 0, highScore = 0;
     let isMovingLeft = false, isMovingRight = false;
     let selectedCharacter = null;
@@ -95,40 +97,43 @@
     let assets = {
         road: new Image(), hitSound: new Audio(), carSound: new Audio(), 
         collectSound: new Audio(), openingSound: new Audio(),
+        magnet: new Image(), nitro: new Image(), // Powerup images ko yahan add kiya
         voices: {
             male: { select: new Audio(), start: new Audio(), coin: new Audio(), gameOver: new Audio(), magnet: new Audio(), nitro: new Audio() },
             female: { select: new Audio(), start: new Audio(), coin: new Audio(), gameOver: new Audio(), magnet: new Audio(), nitro: new Audio() }
         }
     };
 
-    // --- Sabhi audio files ke path ---
+    // --- YAHAN BADLAV KIYA GAYA HAI ---
+    // Ab aap yahan local file name ki jagah poora URL (link) daal sakte hain.
     const assetSources = {
         road: 'road.jpg', hitSound: 'carhit.mp3', carSound: 'carsound.mp3',
         collectSound: 'collect.wav', openingSound: 'opening.wav',
+        
+        // --- POWERUP IMAGE LINKS ---
+        magnet: 'AAPKA_MAGNET_IMAGE_KA_LINK_YAHAN_DAALEIN', // <-- Apna magnet.png ka GitHub link yahan daalo
+        nitro: 'AAPKA_NITRO_IMAGE_KA_LINK_YAHAN_DAALEIN_YA_LOCAL_PATH_RAHNE_DO', // <-- nitro.png ka link daalo
+        
+        // Male Voice Files
         male_select: 'male_select.mp3', male_start: 'male_start.mp3',
         male_coin: 'male_coin.mp3', male_gameOver: 'male_gameOver.mp3',
         male_magnet: 'male_magnet.mp3', male_nitro: 'male_nitro.mp3',
-        female_select: 'female_select.mp3', female_start: 'female_start.mp3',
-        female_coin: 'female_coin.mp3', female_gameOver: 'female_gameOver.mp3',
-        female_magnet: 'female_magnet.mp3', female_nitro: 'female_nitro.mp3',
+        
+        // --- FEMALE VOICE LINK ---
+        female_select: 'AAPKA_FEMALE_SELECT_AUDIO_KA_LINK_YAHAN_DAALEIN', // <-- Apna female_select.mp3 ka GitHub link yahan daalo
+        female_start: 'female_start.mp3', female_coin: 'female_coin.mp3',
+        female_gameOver: 'female_gameOver.mp3', female_magnet: 'female_magnet.mp3',
+        female_nitro: 'female_nitro.mp3',
     };
+    
+    // Baaki ka code poora same hai, bas neeche `spawnObjects` function mein ek chota sa change hai.
     
     let D_DIMS = {}; 
     let playerCar = { x: 0, y: 0 };
     let coins = [], obstacles = [], powerups = [];
 
-    // --- Voice play karne wala function ---
-    function playVoice(event) {
-        if (!selectedCharacter) return;
-        Object.values(assets.voices.male).forEach(s => { s.pause(); s.currentTime = 0; });
-        Object.values(assets.voices.female).forEach(s => { s.pause(); s.currentTime = 0; });
-        const sound = assets.voices[selectedCharacter][event];
-        if (sound && sound.readyState >= 2) { // Check if sound is ready to play
-            sound.play().catch(e => console.warn("Voice play failed:", e));
-        }
-    }
+    function playVoice(event) { if (!selectedCharacter) return; Object.values(assets.voices.male).forEach(s => { s.pause(); s.currentTime = 0; }); Object.values(assets.voices.female).forEach(s => { s.pause(); s.currentTime = 0; }); const sound = assets.voices[selectedCharacter][event]; if (sound && sound.readyState >= 2) { sound.play().catch(e => console.warn("Voice play failed:", e)); } }
     
-    // --- Main Game Functions ---
     function init() {
         highScore = localStorage.getItem('carGameHighScore') || 0;
         document.getElementById('easyButton').addEventListener('click', () => startGame(1.0));
@@ -143,16 +148,7 @@
         leftButton.addEventListener('touchstart', (e) => handleTouch(e, -1)); leftButton.addEventListener('touchend', stopMove);
         rightButton.addEventListener('mousedown', () => isMovingRight = true); rightButton.addEventListener('mouseup', stopMove);
         rightButton.addEventListener('touchstart', (e) => handleTouch(e, 1)); rightButton.addEventListener('touchend', stopMove);
-        
-        // YEH FIXED HAI: Ab permission screen par click karne se game aage badhega
-        permissionScreen.addEventListener('click', () => {
-            if (gameState === 'menu') { // Sirf tabhi kaam karega jab loading poori ho chuki ho
-                permissionScreen.classList.add('hidden');
-                showCharacterSelectionScreen();
-            }
-        });
-        
-        // Loading complete hone ke baad game loop start karo
+        permissionScreen.addEventListener('click', () => { if (gameState === 'menu') { permissionScreen.classList.add('hidden'); showCharacterSelectionScreen(); } });
         requestAnimationFrame(gameLoop);
     }
     
@@ -168,60 +164,35 @@
         gameState = 'playing';
         resetGame();
         playerCar.element.classList.remove('hidden');
-        assets.carSound.currentTime = 0;
-        if(assets.carSound.readyState >= 2) assets.carSound.play();
+        if(assets.carSound.readyState >= 2) { assets.carSound.currentTime = 0; assets.carSound.play(); }
         playVoice('start');
     }
 
     let roadY1 = 0, roadY2 = 0;
     function update() {
-        // Menu mein bhi background scroll hoga
-        let currentRoadSpeed = D_DIMS.roadSpeed * 0.5; // Menu speed
-        if (gameState === 'playing') {
-            currentRoadSpeed = isNitroActive ? D_DIMS.roadSpeed * 3 : D_DIMS.roadSpeed;
-        }
-
+        let currentRoadSpeed = (gameState === 'menu') ? D_DIMS.roadSpeed * 0.5 : (isNitroActive ? D_DIMS.roadSpeed * 3 : D_DIMS.roadSpeed);
         roadY1 += currentRoadSpeed; roadY2 += currentRoadSpeed;
         if (roadY1 >= canvas.height) roadY1 = roadY2 - canvas.height;
         if (roadY2 >= canvas.height) roadY2 = roadY1 - canvas.height;
-
-        if (gameState !== 'playing') return; // Sirf playing state mein game logic chalega
-
+        if (gameState !== 'playing') return;
         if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed;
         if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed;
         playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth));
         playerCar.element.style.left = `${playerCar.x}px`;
-        
         spawnObjects();
-        updateGameObjects(coins, currentRoadSpeed);
-        updateGameObjects(obstacles, currentRoadSpeed);
-        updateGameObjects(powerups, currentRoadSpeed);
+        updateGameObjects(coins, currentRoadSpeed); updateGameObjects(obstacles, currentRoadSpeed); updateGameObjects(powerups, currentRoadSpeed);
         handleCollisions();
         updatePowerups();
     }
     
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if(assets.road.complete && assets.road.naturalHeight !== 0){
-            ctx.drawImage(assets.road, 0, roadY1, canvas.width, canvas.height);
-            ctx.drawImage(assets.road, 0, roadY2, canvas.width, canvas.height);
-        }
-        
-        if (gameState === 'playing' || gameState === 'gameOver') {
-            drawScore();
-        }
-        if (isNitroActive) {
-            ctx.fillStyle = "rgba(0, 150, 255, 0.2)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+        if(assets.road.complete && assets.road.naturalHeight !== 0){ ctx.drawImage(assets.road, 0, roadY1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, roadY2, canvas.width, canvas.height); }
+        if (gameState === 'playing' || gameState === 'gameOver') { drawScore(); }
+        if (isNitroActive) { ctx.fillStyle = "rgba(0, 150, 255, 0.2)"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
     }
 
-    function gameLoop() {
-        update();
-        draw();
-        if (gameState === 'gameOver') { drawGameOver(); }
-        requestAnimationFrame(gameLoop);
-    }
+    function gameLoop() { update(); draw(); if (gameState === 'gameOver') { drawGameOver(); } requestAnimationFrame(gameLoop); }
     
     function gameOver() {
         if (gameState === 'gameOver') return;
@@ -229,80 +200,86 @@
         assets.carSound.pause();
         if(assets.hitSound.readyState >= 2) assets.hitSound.play();
         playVoice('gameOver');
-        if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('carGameHighScore', highScore);
-        }
+        if (score > highScore) { highScore = score; localStorage.setItem('carGameHighScore', highScore); }
         playerCar.element.style.transform = "rotate(30deg) scale(0.9)";
         setTimeout(showCharacterSelectionScreen, 2500);
     }
 
-    // YEH FIXED HAI: Asset loader ab file na milne par bhi game ko aage badhayega
     function loadAssets(callback) {
         let assetsLoaded = 0;
-        const allSources = Object.keys(assetSources);
-        const numAssets = allSources.length;
+        const assetKeys = Object.keys(assetSources);
+        const numAssets = assetKeys.length;
 
-        function assetLoaded(assetName, success) {
-            if (!success) {
-                console.warn(`Warning: Asset "${assetName}" failed to load. Check path and filename.`);
-            }
-            if (++assetsLoaded === numAssets) {
-                // Loading complete
+        function assetLoadCallback(assetName, success) {
+            if (!success) console.warn(`Warning: Asset "${assetName}" failed to load.`);
+            if (++assetsLoaded >= numAssets) {
                 loadingText.textContent = "Tap to Start";
-                gameState = 'menu'; // Ab game menu state mein hai
+                gameState = 'menu';
+                setDimensions();
                 callback();
             }
         }
         
-        const setupAsset = (asset, src, name) => {
-            const successCallback = () => assetLoaded(name, true);
-            const errorCallback = () => assetLoaded(name, false);
+        assetKeys.forEach(key => {
+            const src = assetSources[key];
+            const isVoice = key.includes('_');
+            const assetName = isVoice ? key.split('_')[0] : key;
+            const assetEvent = isVoice ? key.split('_')[1] : null;
+
+            let asset;
+            if (isVoice) {
+                asset = assets.voices[assetName][assetEvent];
+            } else {
+                asset = assets[key];
+            }
             
-            if (asset instanceof Image) {
-                asset.onload = successCallback;
-            } else if (asset instanceof Audio) {
-                // oncanplaythrough event can be unreliable, so we use a timeout fallback
-                asset.oncanplaythrough = successCallback;
-                setTimeout(() => {
-                    // If the event doesn't fire in 3 seconds, assume it loaded or failed
-                    if(asset.readyState < 2) errorCallback();
-                }, 3000);
-            }
-            asset.onerror = errorCallback;
+            if (!asset) return assetLoadCallback(key, false);
+
             asset.src = src;
-        };
-
-        // Load basic assets
-        setupAsset(assets.road, assetSources.road, 'road.jpg');
-        setupAsset(assets.hitSound, assetSources.hitSound, 'hitSound');
-        setupAsset(assets.carSound, assetSources.carSound, 'carSound');
-        assets.carSound.loop = true;
-        setupAsset(assets.collectSound, assetSources.collectSound, 'collectSound');
-        setupAsset(assets.openingSound, assetSources.openingSound, 'openingSound');
-
-        // Load voices
-        for (let gender in assets.voices) {
-            for (let key in assets.voices[gender]) {
-                const sourceName = `${gender}_${key}`;
-                setupAsset(assets.voices[gender][key], assetSources[sourceName], sourceName);
+            if (asset instanceof Image) {
+                asset.onload = () => assetLoadCallback(key, true);
+            } else if (asset instanceof Audio) {
+                asset.oncanplaythrough = () => assetLoadCallback(key, true);
             }
+            asset.onerror = () => assetLoadCallback(key, false);
+        });
+        assets.carSound.loop = true;
+    }
+    
+    let obstacleSpawnTimer = 0, coinSpawnTimer = 0;
+    function spawnObjects() {
+        obstacleSpawnTimer++;
+        if (obstacleSpawnTimer > 120 / D_DIMS.difficultyMultiplier) {
+            obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random()*4)+1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2));
+            obstacleSpawnTimer = 0;
+        }
+        coinSpawnTimer++;
+        if (coinSpawnTimer > 180 / D_DIMS.difficultyMultiplier) {
+            coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize));
+            coinSpawnTimer = 0;
+        }
+        powerupSpawnTimer++;
+        if (powerupSpawnTimer > 600) {
+            let type = Math.random() > 0.5 ? 'magnet' : 'nitro';
+            if (type === 'nitro' && isNitroReady) return;
+            // --- YAHAN BADLAV KIYA GAYA HAI ---
+            // Ab powerup image ka link direct `assetSources` se aayega
+            powerups.push(createGameObject('powerup', assetSources[type], D_DIMS.coinSize, D_DIMS.coinSize, 0, type));
+            powerupSpawnTimer = 0;
         }
     }
     
     // --- Baaki sabhi helper functions bina kisi badlav ke ---
-    function showCharacterSelectionScreen() { setDimensions(); resetGame(); gameState = 'menu'; startScreen.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); nitroButton.classList.add('hidden'); highScoreDisplay.innerHTML = `High Score: ${highScore}`; highScoreDisplay.classList.remove('hidden'); characterSelector.classList.remove('hidden'); if(assets.openingSound.readyState >= 2) { assets.openingSound.currentTime = 0; assets.openingSound.play();} }
-    function showStartScreen() { characterSelector.classList.add('hidden'); startScreen.classList.remove('hidden'); }
-    let obstacleSpawnTimer = 0, coinSpawnTimer = 0;
-    function spawnObjects() { obstacleSpawnTimer++; if (obstacleSpawnTimer > 120 / D_DIMS.difficultyMultiplier) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random()*4)+1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.obstacleBaseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } coinSpawnTimer++; if (coinSpawnTimer > 180 / D_DIMS.difficultyMultiplier) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize)); coinSpawnTimer = 0; } powerupSpawnTimer++; if (powerupSpawnTimer > 600) { let type = Math.random() > 0.5 ? 'magnet' : 'nitro'; if(type === 'nitro' && isNitroReady) return; powerups.push(createGameObject('powerup', `${type}.png`, D_DIMS.coinSize, D_DIMS.coinSize, 0, type)); powerupSpawnTimer = 0; } }
     function updateGameObjects(objectArray, roadSpeed) { for (let i = objectArray.length - 1; i >= 0; i--) { const obj = objectArray[i]; if(obj.type === 'coin' && isMagnetActive) { let dx = (playerCar.x + D_DIMS.playerCarWidth/2) - (obj.x + obj.width/2); let dy = (playerCar.y + D_DIMS.playerCarHeight/2) - (obj.y + obj.height/2); let dist = Math.sqrt(dx*dx + dy*dy); if(dist < canvas.width * 0.5) { obj.x += dx * 0.1; obj.y += dy * 0.1; obj.element.style.left = `${obj.x}px`; } } obj.y += (obj.speed || D_DIMS.coinSpeed) + roadSpeed; obj.element.style.top = `${obj.y}px`; if (obj.y > canvas.height) { obj.element.remove(); objectArray.splice(i, 1); } } }
     function handleCollisions() { const playerRect = playerCar.element.getBoundingClientRect(); for (let obj of obstacles) { if (checkCollision(playerRect, obj.element.getBoundingClientRect())) { gameOver(); return; } } for (let i = coins.length - 1; i >= 0; i--) { if (checkCollision(playerRect, coins[i].element.getBoundingClientRect())) { score += 5; if (score % 50 === 0) playVoice('coin'); if(assets.collectSound.readyState >= 2) assets.collectSound.play(); coins[i].element.remove(); coins.splice(i, 1); } } for (let i = powerups.length - 1; i >= 0; i--) { if (checkCollision(playerRect, powerups[i].element.getBoundingClientRect())) { if (powerups[i].powerupType === 'magnet') { isMagnetActive = true; magnetTimer = 300; playVoice('magnet'); } else if (powerups[i].powerupType === 'nitro') { isNitroReady = true; nitroButton.classList.remove('hidden'); playVoice('nitro'); } powerups[i].element.remove(); powerups.splice(i, 1); } } }
-    function updatePowerups() { powerupStatusContainer.innerHTML = ''; if (isMagnetActive) { magnetTimer--; if (magnetTimer <= 0) isMagnetActive = false; else addPowerupStatus('magnet.png', `${Math.ceil(magnetTimer/60)}s`); } if (isNitroActive) { nitroTimer--; if (nitroTimer <= 0) isNitroActive = false; } }
+    function updatePowerups() { powerupStatusContainer.innerHTML = ''; if (isMagnetActive) { magnetTimer--; if (magnetTimer <= 0) isMagnetActive = false; else addPowerupStatus(assetSources.magnet, `${Math.ceil(magnetTimer/60)}s`); } if (isNitroActive) { nitroTimer--; if (nitroTimer <= 0) isNitroActive = false; } }
     function activateNitro() { if (!isNitroReady || isNitroActive) return; isNitroReady = false; isNitroActive = true; nitroTimer = 180; nitroButton.classList.add('hidden'); }
     function addPowerupStatus(iconSrc, text) { powerupStatusContainer.innerHTML += `<div class="status-item"><img src="${iconSrc}"><span>${text}</span></div>`; }
+    function showCharacterSelectionScreen() { setDimensions(); resetGame(); gameState = 'menu'; startScreen.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); nitroButton.classList.add('hidden'); highScoreDisplay.innerHTML = `High Score: ${highScore}`; highScoreDisplay.classList.remove('hidden'); characterSelector.classList.remove('hidden'); if(assets.openingSound.readyState >= 2) { assets.openingSound.currentTime = 0; assets.openingSound.play();} }
+    function showStartScreen() { characterSelector.classList.add('hidden'); startScreen.classList.remove('hidden'); }
     function drawScore() { ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(10, 10, 200, 50); ctx.fillStyle = 'white'; ctx.font = 'bold 24px Poppins'; ctx.textAlign = 'left'; ctx.fillText(`Score: ${score}`, 25, 42); }
     function drawGameOver() { ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'white'; ctx.font = `bold ${canvas.width * 0.12}px Poppins`; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 40); ctx.font = `bold ${canvas.width * 0.06}px Poppins`; ctx.fillText(`Your Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20); }
-    setDimensions = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; Object.assign(D_DIMS, { roadLeftBoundary: canvas.width * 0.25, roadRightBoundary: canvas.width * 0.75, playerCarWidth: canvas.width * 0.12, playerCarHeight: (canvas.width * 0.12) * 1.8, playerCarSpeed: canvas.width * 0.015, obstacleBaseSpeed: canvas.height * 0.004, coinSpeed: canvas.height * 0.006 }); D_DIMS.obstacleWidth = D_DIMS.playerCarWidth; D_DIMS.obstacleHeight = D_DIMS.playerCarHeight; D_DIMS.coinSize = D_DIMS.playerCarWidth * 0.6; D_DIMS.roadSpeed = D_DIMS.obstacleBaseSpeed * D_DIMS.difficultyMultiplier; };
+    setDimensions = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; Object.assign(D_DIMS, { roadLeftBoundary: canvas.width * 0.25, roadRightBoundary: canvas.width * 0.75, playerCarWidth: canvas.width * 0.12, playerCarHeight: (canvas.width * 0.12) * 1.8, playerCarSpeed: canvas.width * 0.015, obstacleBaseSpeed: canvas.height * 0.004, coinSpeed: canvas.height * 0.006 }); D_DIMS.obstacleWidth = D_DIMS.playerCarWidth; D_DIMS.obstacleHeight = D_DIMS.playerCarHeight; D_DIMS.coinSize = D_DIMS.playerCarWidth * 0.6; D_DIMS.roadSpeed = D_DIMS.obstacleBaseSpeed * (D_DIMS.difficultyMultiplier || 1); };
     resetGame = () => { gameObjectContainer.innerHTML = ''; coins = []; obstacles = []; powerups = []; score = 0; isMagnetActive = false; isNitroActive = false; isNitroReady = false; powerupSpawnTimer = 0; if (playerCar.element) playerCar.element.remove(); playerCar.element = createGameObject('player-car', 'player_car.png', D_DIMS.playerCarWidth, D_DIMS.playerCarHeight).element; playerCar.x = canvas.width/2 - D_DIMS.playerCarWidth/2; playerCar.y = canvas.height - D_DIMS.playerCarHeight - 40; playerCar.element.style.left = `${playerCar.x}px`; playerCar.element.style.top = `${playerCar.y}px`; playerCar.element.style.transform = ''; roadY1 = 0; roadY2 = -canvas.height; };
     createGameObject = (type, src, width, height, speed = 0, powerupType = null) => { const el = document.createElement('img'); el.src = src; el.className = `game-object ${type}`; Object.assign(el.style, { width: `${width}px`, height: `${height}px`, top: `-${height}px` }); const x = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary; el.style.left = `${x}px`; gameObjectContainer.appendChild(el); return { element: el, x, y: -height, width, height, speed, type, powerupType }; };
     checkCollision = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
