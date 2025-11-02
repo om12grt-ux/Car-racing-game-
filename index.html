@@ -139,11 +139,8 @@
     </div>
 
     <script>
-        // === CONFIGURATION AREA ===
         const CONFIG = { playerCarWidthPercent: 0.11, playerSpeedMultiplier: 0.0216, roadSpeedMultiplier: 0.006, difficulty: { easy: 1.0, medium: 1.1, hard: 1.21 }, obstacleWidthFactor: 0.75, obstacleSpawnInterval: 120, coinSizePercent: 0.15, coinSpawnInterval: 180, magnetSizePercent: 0.1, magnetSpawnInterval: 600, magnetDuration: 360 };
         const cars = [ { name: 'Default Racer', src: 'player_car.png', price: 0, unlocked: true }, { name: 'Blue Thunder', src: 'player_car_2.png', price: 50, unlocked: false }, { name: 'Red Fury', src: 'player_car_3.png', price: 100, unlocked: false }, { name: 'Green Ghost', src: 'player_car_4.png', price: 250, unlocked: false }, { name: 'Yellow Jacket', src: 'player_car_5.png', price: 500, unlocked: false } ];
-        
-        // --- DOM Elements ---
         const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
         const gameContainer = document.getElementById('gameContainer');
         const startScreen = document.getElementById('startScreen'), coinDisplay = document.getElementById('coinDisplay'), totalCoinsDisplay = document.getElementById('totalCoinsDisplay');
@@ -161,63 +158,65 @@
         let coinSpawnTimer = 0, obstacleSpawnTimer = 0, magnetSpawnTimer = 0;
         let D_DIMS = {};
 
-        // === BUG FIX: YAHAN PAR BADLAV KIYA GAYA HAI ===
-        function loadAssets(callback) {
-            // NOTE: Agar koi image/sound nahi mil rahi hai to game yahan atak jayega.
-            // Sunishchit karein ki sabhi file names sahi hain aur files folder me maujood hain.
-            const assetSources = { 
-                road: 'road.jpg', 
-                hitSound: 'carhit.mp3', 
-                carSound: 'carsound.mp3', 
-                collectSound: 'collect.wav', 
-                openingSound: 'opening.wav' 
-            };
-            let loaded = 0;
-            const total = Object.keys(assetSources).length;
+        // === MAGNET BUG FIX: SIRF YAHAN BADLAV KIYA GAYA HAI ===
+        function updateAndCheckObjects(arr, onCollision) {
+            for (let i = arr.length - 1; i >= 0; i--) {
+                const obj = arr[i];
 
-            if (total === 0) {
-                callback();
-                return;
+                // Pehle object ko normal speed se neeche laao
+                obj.y += obj.speed || D_DIMS.baseSpeed;
+
+                // Agar object coin hai aur magnet active hai, to use car ki taraf kheencho
+                if (obj.element.classList.contains('coin') && playerCar.magnetActive) {
+                    const dx = (playerCar.x + D_DIMS.playerCarWidth / 2) - (obj.x + obj.width / 2);
+                    const dy = (playerCar.y + D_DIMS.playerCarHeight / 2) - (obj.y + obj.height / 2);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Aakarshan kshetr (attraction radius) check karo
+                    if (distance < canvas.width * 0.45) {
+                        obj.x += dx * 0.1; // Horizontal pull
+                        obj.y += dy * 0.1; // Vertical pull
+                    }
+                }
+
+                // Object ki final position ko screen par update karo
+                obj.element.style.top = `${obj.y}px`;
+                obj.element.style.left = `${obj.x}px`; // Yeh line add karna zaroori tha
+
+                let removed = false;
+                
+                // Takkar (Collision) check karo
+                if (obj.element.classList.contains('coin')) {
+                    if (checkCollision(playerCar, obj)) {
+                        score += 1;
+                        totalCoins += 1;
+                        updateCoinDisplay();
+                        saveGameData();
+                        assets.collectSound.currentTime = 0;
+                        assets.collectSound.play();
+                        createScorePopup(obj.x, obj.y);
+                        removed = true;
+                    }
+                } else if (onCollision) {
+                     removed = onCollision(obj);
+                }
+
+                // Agar object screen se bahar chala gaya ya collect ho gaya, to use hata do
+                if (removed || obj.y > canvas.height) {
+                    obj.element.remove();
+                    arr.splice(i, 1);
+                }
             }
-
-            const assetLoaded = (assetName) => {
-                // console.log(`${assetName} loaded.`); // For debugging
-                loaded++;
-                if (loaded === total) {
-                    callback(); // init() function ko call karein
-                }
-            };
-            
-            const assetFailed = (assetName, src) => {
-                console.error(`Error: Asset '${assetName}' at path '${src}' could not be loaded. Make sure the file exists and the path is correct.`);
-                loaded++; // Phir bhi counter badhayein taaki game na atke
-                if (loaded === total) {
-                    callback();
-                }
-            };
-
-            for (let key in assetSources) {
-                const src = assetSources[key];
-                if (key.includes('Sound')) {
-                    assets[key].src = src;
-                    assets[key].addEventListener('canplaythrough', () => assetLoaded(key));
-                    assets[key].addEventListener('error', () => assetFailed(key, src));
-                } else { // Image
-                    assets[key].src = src;
-                    assets[key].addEventListener('load', () => assetLoaded(key));
-                    assets[key].addEventListener('error', () => assetFailed(key, src));
-                }
-            }
-            assets.carSound.loop = true;
         }
-
-
+        
+        // --- Baki ka code jaisa tha waisa hi hai, usme koi badlav nahi hai ---
+        
+        function loadAssets(callback) { const assetSources = { road: 'road.jpg', hitSound: 'carhit.mp3', carSound: 'carsound.mp3', collectSound: 'collect.wav', openingSound: 'opening.wav' }; let loaded = 0; const total = Object.keys(assetSources).length; if (total === 0) { callback(); return; } const assetLoaded = () => { loaded++; if (loaded === total) { callback(); } }; const assetFailed = (assetName, src) => { console.error(`Error: Asset '${assetName}' at path '${src}' could not be loaded.`); loaded++; if (loaded === total) { callback(); } }; for (let key in assetSources) { const src = assetSources[key]; if (key.includes('Sound')) { assets[key].src = src; assets[key].addEventListener('canplaythrough', () => assetLoaded(key)); assets[key].addEventListener('error', () => assetFailed(key, src)); } else { assets[key].src = src; assets[key].addEventListener('load', () => assetLoaded(key)); assets[key].addEventListener('error', () => assetFailed(key, src)); } } assets.carSound.loop = true; }
         function saveGameData() { const unlockedCarSrcs = cars.filter(c => c.unlocked).map(c => c.src); const gameData = { totalCoins: totalCoins, unlockedCars: unlockedCarSrcs }; localStorage.setItem('carGameData', JSON.stringify(gameData)); }
         function loadGameData() { const savedData = localStorage.getItem('carGameData'); if (savedData) { const gameData = JSON.parse(savedData); totalCoins = gameData.totalCoins || 0; const unlockedSrcs = gameData.unlockedCars || [cars[0].src]; cars.forEach(car => { if (unlockedSrcs.includes(car.src)) { car.unlocked = true; } }); } updateCoinDisplay(); }
         function updateCoinDisplay() { totalCoinsDisplay.innerText = totalCoins; }
         function buyCar(carIndex) { const car = cars[carIndex]; if (totalCoins >= car.price) { totalCoins -= car.price; car.unlocked = true; updateCoinDisplay(); saveGameData(); populateCarShop(); } }
         function populateCarShop() { const container = document.getElementById('carSelection'); container.innerHTML = ''; cars.forEach((car, index) => { const carDiv = document.createElement('div'); carDiv.className = 'car-option'; if (car.unlocked) { if (car.src === selectedCarSrc) carDiv.classList.add('selected'); carDiv.innerHTML = `<img src="${car.src}" alt="${car.name}"><p>${car.name}</p>`; carDiv.addEventListener('click', () => { selectedCarSrc = car.src; document.querySelectorAll('.car-option').forEach(opt => opt.classList.remove('selected')); carDiv.classList.add('selected'); shopModal.classList.add('hidden'); startGame(CONFIG.difficulty.medium); }); } else { carDiv.classList.add('locked'); carDiv.innerHTML = ` <img src="${car.src}" alt="${car.name}"> <p>${car.name}</p> <div class="price-tag"> <img src="coin.gif"> <span>${car.price}</span> </div> <button class="buy-btn" id="buyBtn-${index}">Buy</button> `; } container.appendChild(carDiv); if (!car.unlocked) { const buyButton = document.getElementById(`buyBtn-${index}`); if (totalCoins < car.price) { buyButton.disabled = true; } buyButton.addEventListener('click', () => buyCar(index)); } }); }
-        function updateAndCheckObjects(arr, onCollision) { for (let i = arr.length - 1; i >= 0; i--) { const obj = arr[i]; obj.y += obj.speed || D_DIMS.baseSpeed; obj.element.style.top = `${obj.y}px`; let removed = false; if (obj.element.classList.contains('coin')) { if (checkCollision(playerCar, obj)) { score += 1; totalCoins += 1; updateCoinDisplay(); saveGameData(); assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(obj.x, obj.y); removed = true; } } else if (onCollision) { removed = onCollision(obj); } if (removed || obj.y > canvas.height) { obj.element.remove(); arr.splice(i, 1); } } }
         function init() { loadGameData(); loadSettings(); document.getElementById('easyButton').addEventListener('click', () => startGame(CONFIG.difficulty.easy)); document.getElementById('mediumButton').addEventListener('click', () => startGame(CONFIG.difficulty.medium)); document.getElementById('hardButton').addEventListener('click', () => startGame(CONFIG.difficulty.hard)); const handleTouchStart = (e) => e.preventDefault(); ['mousedown', 'touchstart'].forEach(evt => { leftButton.addEventListener(evt, (e) => { handleTouchStart(e); isMovingLeft = true; }); rightButton.addEventListener(evt, (e) => { handleTouchStart(e); isMovingRight = true; }); }); ['mouseup', 'mouseleave', 'touchend'].forEach(evt => { leftButton.addEventListener(evt, () => isMovingLeft = false); rightButton.addEventListener(evt, () => isMovingRight = false); }); permissionScreen.addEventListener('click', () => { permissionScreen.classList.add('hidden'); showStartScreen(); requestAnimationFrame(gameLoop); }, { once: true }); settingsButton.addEventListener('click', () => { startScreen.classList.add('hidden'); populateCarShop(); shopModal.classList.remove('hidden'); }); closeShopButton.addEventListener('click', () => { shopModal.classList.add('hidden'); startScreen.classList.remove('hidden'); }); document.getElementById('openSettingsButton').addEventListener('click', () => { shopModal.classList.add('hidden'); settingsModal.classList.remove('hidden'); }); backToMenuButton.addEventListener('click', () => { settingsModal.classList.add('hidden'); shopModal.classList.remove('hidden'); }); const opacitySlider = document.getElementById('opacitySlider'); opacitySlider.addEventListener('input', (e) => { const opacity = e.target.value / 100; leftButton.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`; rightButton.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`; localStorage.setItem('controlOpacity', e.target.value); }); document.getElementById('positionControlsButton').addEventListener('click', enterPositioningMode); document.getElementById('savePositionsButton').addEventListener('click', exitPositioningMode); window.addEventListener('resize', showStartScreen); }
         function showStartScreen() { setDimensions(); resetGame(); gameState = 'menu'; playerCar.element.classList.add('hidden'); startScreen.classList.remove('hidden'); coinDisplay.classList.remove('hidden'); shopModal.classList.add('hidden'); settingsModal.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); assets.openingSound.currentTime = 0; assets.openingSound.play(); }
         function resetGame() { score = 0; document.getElementById('popupContainer').innerHTML = ''; document.getElementById('gameObjectContainer').innerHTML = ''; playerCar.element = document.createElement('img'); playerCar.element.id = 'playerCarElement'; playerCar.element.className = 'game-object'; playerCar.element.src = selectedCarSrc; playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`; playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`; document.getElementById('gameObjectContainer').appendChild(playerCar.element); playerCar.y = canvas.height - D_DIMS.playerCarHeight - (canvas.height * 0.1); playerCar.x = (canvas.width / 2) - (D_DIMS.playerCarWidth / 2); playerCar.element.style.left = `${playerCar.x}px`; playerCar.element.style.top = `${playerCar.y}px`; obstacles = []; coins = []; magnets = []; playerCar.magnetActive = false; magnetTimerDiv.classList.add('hidden'); road = { y1: 0, y2: -canvas.height }; }
