@@ -73,7 +73,7 @@
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 5px #666; } 50% { transform: scale(1.05); box-shadow: 0 8px 15px rgba(76, 175, 80, 0.7); } 100% { transform: scale(1); box-shadow: 0 5px #666; } }
         .hidden { display: none !important; }
         .game-object { position: absolute; filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.5)); }
-        .coin { z-index: 2; }
+        .coin { z-index: 2; transition: transform 0.1s linear; }
         .obstacle-car { z-index: 3; }
         .magnet-powerup { z-index: 3; }
         #playerCarElement { z-index: 4; }
@@ -254,7 +254,9 @@
                     const dy = (playerCar.y + D_DIMS.playerCarHeight / 2) - (coin.y + coin.height / 2);
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     if (distance < canvas.width * 0.5) { // Magnet range
-                        coin.x -= dx * 0.1; coin.y -= dy * 0.1;
+                        // === YAHAN PAR BADLAV KIYA GAYA HAI ===
+                        coin.x += dx * 0.1; // Pehle -= tha, ab += hai
+                        coin.y += dy * 0.1; // Pehle -= tha, ab += hai
                         coin.element.style.left = `${coin.x}px`;
                     }
                 }
@@ -296,7 +298,6 @@
         
         resetGame = function() {
             popupContainer.innerHTML = '';
-            // Purane game objects ko clear karte hain
             while (gameObjectContainer.firstChild) {
                 gameObjectContainer.removeChild(gameObjectContainer.firstChild);
             }
@@ -304,7 +305,7 @@
             playerCar.element = document.createElement('img');
             playerCar.element.id = 'playerCarElement';
             playerCar.element.className = 'game-object';
-            playerCar.element.src = selectedCarSrc; // Selected car
+            playerCar.element.src = selectedCarSrc;
             playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`;
             playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`;
             gameObjectContainer.appendChild(playerCar.element);
@@ -355,48 +356,21 @@
         }
 
         function draw3DScoreBox(scoreValue) {
-            const boxWidth = canvas.width * 0.4;
-            const boxHeight = canvas.height * 0.07;
-            const x = 10;
-            const y = 10;
-            const radius = 8;
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-            ctx.shadowBlur = 10;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
+            const boxWidth = canvas.width * 0.4; const boxHeight = canvas.height * 0.07;
+            const x = 10; const y = 10; const radius = 8;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + boxWidth - radius, y);
-            ctx.arcTo(x + boxWidth, y, x + boxWidth, y + radius, radius);
-            ctx.lineTo(x + boxWidth, y + boxHeight - radius);
-            ctx.arcTo(x + boxWidth, y + boxHeight, x + boxWidth - radius, y + boxHeight, radius);
-            ctx.lineTo(x + radius, y + boxHeight);
-            ctx.arcTo(x, y + boxHeight, x, y + boxHeight - radius, radius);
-            ctx.lineTo(x, y + radius);
-            ctx.arcTo(x, y, x + radius, y, radius);
-            ctx.closePath();
+            ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.lineTo(x + boxWidth - radius, y); ctx.arcTo(x + boxWidth, y, x + boxWidth, y + radius, radius); ctx.lineTo(x + boxWidth, y + boxHeight - radius); ctx.arcTo(x + boxWidth, y + boxHeight, x + boxWidth - radius, y + boxHeight, radius); ctx.lineTo(x + radius, y + boxHeight); ctx.arcTo(x, y + boxHeight, x, y + boxHeight - radius, radius); ctx.lineTo(x, y + radius); ctx.arcTo(x, y, x + radius, y, radius); ctx.closePath();
             ctx.fill();
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${canvas.height * 0.035}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('Score: ' + scoreValue, x + boxWidth / 2, y + boxHeight / 2);
+            ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+            ctx.fillStyle = 'white'; ctx.font = `bold ${canvas.height * 0.035}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Score: ' + scoreValue, x + boxWidth / 2, y + boxHeight / 2);
         }
 
         function drawGameOver() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${canvas.width * 0.15}px Arial`;
-            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white'; ctx.font = `bold ${canvas.width * 0.15}px Arial`; ctx.textAlign = 'center';
             ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
-            ctx.font = `bold ${canvas.width * 0.06}px Arial`;
-            ctx.fillText('Restarting...', canvas.width / 2, canvas.height / 2 + 20);
+            ctx.font = `bold ${canvas.width * 0.06}px Arial`; ctx.fillText('Restarting...', canvas.width / 2, canvas.height / 2 + 20);
         }
         
         loadAssets(init);
