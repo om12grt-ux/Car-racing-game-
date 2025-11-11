@@ -83,7 +83,23 @@
         let isPositioningControls = false;
 
         function speak(text) { if (!VOICE_CONFIG.enabled || !('speechSynthesis' in window)) return; const utterance = new SpeechSynthesisUtterance(text); utterance.lang = VOICE_CONFIG.lang; utterance.rate = VOICE_CONFIG.rate; utterance.pitch = VOICE_CONFIG.pitch; window.speechSynthesis.speak(utterance); }
-        function handleGameOver() { gameState = 'gameOver'; assets.carSound.pause(); assets.hitSound.currentTime = 0; assets.hitSound.play(); finalScoreDisplay.innerText = `Your Score: ${score}`; continueBtn.disabled = !(totalCoins >= CONFIG.continueCost && !usedContinue); gameOverModal.classList.remove('hidden'); speak(`${VOICE_CONFIG.gameOver} ${score}`); }
+        
+        function handleGameOver() {
+            gameState = 'gameOver';
+            assets.carSound.pause();
+            assets.hitSound.currentTime = 0;
+            assets.hitSound.play();
+            
+            // BUG FIX: Game Over hone par buttons chupayein
+            leftButton.classList.add('hidden');
+            rightButton.classList.add('hidden');
+
+            finalScoreDisplay.innerText = `Your Score: ${score}`;
+            continueBtn.disabled = !(totalCoins >= CONFIG.continueCost && !usedContinue);
+            gameOverModal.classList.remove('hidden');
+            speak(`${VOICE_CONFIG.gameOver} ${score}`);
+        }
+
         function continueGame() { if (totalCoins >= CONFIG.continueCost && !usedContinue) { totalCoins -= CONFIG.continueCost; usedContinue = true; updateCoinDisplay(); saveGameData(); playerCar.isImmune = true; playerCar.immunityTimer = CONFIG.immunityDuration; obstacles = obstacles.filter(obs => obs.y < playerCar.y - 50 || obs.y > playerCar.y + D_DIMS.playerCarHeight); document.querySelectorAll('.obstacle-car').forEach(el => { const elTop = parseFloat(el.style.top); if (elTop > playerCar.y - 50 && elTop < playerCar.y + D_DIMS.playerCarHeight) { el.remove(); } }); gameOverModal.classList.add('hidden'); gameState = 'playing'; assets.carSound.play(); } }
         function retryGame() { gameOverModal.classList.add('hidden'); showStartScreen(); }
         
