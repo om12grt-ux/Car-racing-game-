@@ -15,6 +15,10 @@
         #positioningOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 90; display: flex; color: white; align-items: center; flex-direction: column; justify-content: space-between; padding: 20vh 0 10vh 0; }
         .positioning-text { text-align: center; padding: 20px; background-color: rgba(0,0,0,0.5); border-radius: 10px; font-size: 4vmin; }
         #positioningOverlay .modal-button { background-color: #4CAF50; width: 60vw; max-width: 250px; }
+
+        /* NAYE MENU KI IMAGE KE LIYE STYLE */
+        .promo-image { max-width: 80%; height: auto; max-height: 40vh; border-radius: 10px; margin-bottom: 20px; border: 3px solid #FFD700;}
+
     </style>
 </head>
 <body>
@@ -35,6 +39,19 @@
             <button id="rewardButton"> <img src="coin.gif"> <span>Visit Site for 150 Coins</span> </button>
             <div id="settingsButton"></div>
         </div>
+
+        <!-- === NAYA MENU (MODAL) === -->
+        <div id="intermediateSettingsModal" class="modal hidden">
+            <div class="modal-content">
+                <button id="closeIntermediateModalButton" class="modal-close-btn"></button>
+                <h2>Our Cars</h2>
+                <!-- APNI IMAGE KA LINK YAHAN DAALEIN -->
+                <img src="https://via.placeholder.com/400x200.png?text=Your+Awesome+Car+Image" alt="Promo Image" class="promo-image">
+                <button id="openShopButton" class="modal-button" style="background-color: #FFC107; color: black;">Select our new cars</button>
+            </div>
+        </div>
+        <!-- ========================== -->
+
         <div id="shopModal" class="modal hidden"> <div class="modal-content"> <button id="closeShopButton" class="modal-close-btn"></button> <h2>Choose Your Car</h2> <div id="carSelection"></div> <button id="openSettingsButton" class="modal-button">Game Settings</button> </div> </div>
         <div id="settingsModal" class="modal hidden">
              <div class="modal-content">
@@ -79,6 +96,12 @@
         const cars = [ { name: 'Default Racer', src: 'player_car.png', price: 0, unlocked: true }, { name: 'Blue Thunder', src: 'player_car_2.png', price: 50, unlocked: false }, { name: 'Red Fury', src: 'player_car_3.png', price: 100, unlocked: false }, { name: 'Green Ghost', src: 'player_car_4.png', price: 250, unlocked: false }, { name: 'Yellow Jacket', src: 'player_car_5.png', price: 500, unlocked: false } ];
         
         const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d'); const gameContainer = document.getElementById('gameContainer'); const startScreen = document.getElementById('startScreen'), coinDisplay = document.getElementById('coinDisplay'), totalCoinsDisplay = document.getElementById('totalCoinsDisplay'), rewardButton = document.getElementById('rewardButton'); const shopModal = document.getElementById('shopModal'), closeShopButton = document.getElementById('closeShopButton'); const settingsButton = document.getElementById('settingsButton'); const settingsModal = document.getElementById('settingsModal'); const magnetTimerDiv = document.getElementById('magnetTimer'); const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton'); const gameOverModal = document.getElementById('gameOverModal'), finalScoreDisplay = document.getElementById('finalScore'), continueBtn = document.getElementById('continueBtn'), retryBtn = document.getElementById('retryBtn'), gameOverBackBtn = document.getElementById('gameOverBackBtn'); const customAlertModal = document.getElementById('customAlertModal'); const alertTitle = document.getElementById('alertTitle'); const alertMessage = document.getElementById('alertMessage'); const alertConfirmBtn = document.getElementById('alertConfirmBtn'); const alertCancelBtn = document.getElementById('alertCancelBtn'); const alertOkBtn = document.getElementById('alertOkBtn'); const sizeSlider = document.getElementById('sizeSlider'); const savePositionsButton = document.getElementById('savePositionsButton');
+        
+        // NAYE MENU KE ELEMENTS
+        const intermediateSettingsModal = document.getElementById('intermediateSettingsModal');
+        const openShopButton = document.getElementById('openShopButton');
+        const closeIntermediateModalButton = document.getElementById('closeIntermediateModalButton');
+
         let gameState = 'menu', score = 0, difficultyMultiplier = 1.0, totalCoins = 0; let selectedCarSrc = 'player_car.png'; let assets = { road: new Image(), hitSound: new Audio(), carSound: new Audio(), collectSound: new Audio(), openingSound: new Audio() }; const playerCar = { element: document.getElementById('playerCarElement'), x: 0, y: 0, magnetActive: false, magnetTimer: 0, isImmune: false, immunityTimer: 0 }; let road = {}, coins = [], obstacles = [], magnets = []; let coinSpawnTimer = 0, obstacleSpawnTimer = 0, magnetSpawnTimer = 0; let D_DIMS = {}; let rewardInProgress = false; let timerComplete = false; let usedContinue = false;
         let isPositioningControls = false;
 
@@ -114,11 +137,27 @@
             ['mousedown', 'touchstart'].forEach(evt => { leftButton.addEventListener(evt, (e) => { handleTouchStart(e); isMovingLeft = true; }); rightButton.addEventListener(evt, (e) => { handleTouchStart(e); isMovingRight = true; }); });
             ['mouseup', 'mouseleave', 'touchend'].forEach(evt => { leftButton.addEventListener(evt, () => isMovingLeft = false); rightButton.addEventListener(evt, () => isMovingRight = false); });
             
-            // "Tap to Start" screen ka logic yahan se hata diya gaya hai
             showStartScreen();
             requestAnimationFrame(gameLoop);
 
-            settingsButton.addEventListener('click', () => { startScreen.classList.add('hidden'); populateCarShop(); shopModal.classList.remove('hidden'); });
+            // === EVENT LISTENERS ME BADLAAV ===
+            settingsButton.addEventListener('click', () => { 
+                startScreen.classList.add('hidden'); 
+                intermediateSettingsModal.classList.remove('hidden'); // Naya menu dikhao
+            });
+
+            closeIntermediateModalButton.addEventListener('click', () => {
+                intermediateSettingsModal.classList.add('hidden');
+                startScreen.classList.remove('hidden'); // Start screen par wapas jao
+            });
+
+            openShopButton.addEventListener('click', () => {
+                intermediateSettingsModal.classList.add('hidden');
+                populateCarShop();
+                shopModal.classList.remove('hidden'); // Car shop dikhao
+            });
+            // ===================================
+
             closeShopButton.addEventListener('click', () => { shopModal.classList.add('hidden'); startScreen.classList.remove('hidden'); });
             document.getElementById('openSettingsButton').addEventListener('click', () => { shopModal.classList.add('hidden'); settingsModal.classList.remove('hidden'); });
             document.getElementById('closeSettingsButton').addEventListener('click', () => { settingsModal.classList.add('hidden'); shopModal.classList.remove('hidden'); });
