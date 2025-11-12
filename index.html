@@ -4,26 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Car Racing Game</title>
+    
+    <!-- === GOOGLE ADMOB SCRIPT START === -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-1663130037566399"
+     crossorigin="anonymous"></script>
+    <!-- === GOOGLE ADMOB SCRIPT END === -->
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; } body { background-color: #111; overflow: hidden; font-family: 'Arial', sans-serif; } #gameContainer { position: relative; width: 100vw; height: 100vh; -webkit-tap-highlight-color: transparent; overflow: hidden; } canvas { width: 100%; height: 100%; display: block; }
         .control-btn { position: absolute; bottom: 12vh; width: 18vmin; height: 18vmin; max-width: 90px; max-height: 90px; background-color: transparent; border: none; background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; user-select: none; z-index: 110; } #leftButton { background-image: url('left_btn.png'); left: 5vw; } #rightButton { background-image: url('right_btn.png'); right: 5vw; } #settingsButton { position: absolute; top: 2vh; right: 3vw; width: 12vmin; height: 12vmin; max-width: 50px; max-height: 50px; background: url('settings_btn.png') no-repeat center center / contain; border: none; cursor: pointer; z-index: 11; }
-        #pauseButton { position: absolute; top: 2vh; right: 15vw; width: 12vmin; height: 12vmin; max-width: 50px; max-height: 50px; background: url('pause_btn.png') no-repeat center center / contain; border: none; cursor: pointer; z-index: 11; }
         .game-over-btn { background-color: transparent; border: none; width: 70%; max-width: 300px; height: 80px; cursor: pointer; transition: transform 0.2s; background-size: 100% 100%; background-repeat: no-repeat; display: flex; justify-content: center; align-items: center; gap: 10px; color: white; font-size: 5vmin; font-weight: bold; text-shadow: 2px 2px 4px #000; } #continueBtn { background-image: url('continue_btn.png'); } #retryBtn { background-image: url('retry_btn.png'); } .game-over-btn img { width: 6vmin; max-width: 30px; } .game-over-btn:disabled { filter: grayscale(80%) opacity(0.6); cursor: not-allowed; } #gameOverBackBtn { background: url('close_btn.png') no-repeat center center / contain; width: 50px; height: 50px; border: none; cursor: pointer; margin-top: 15px; }
         .modal-close-btn { position: absolute; top: 15px; right: 15px; background: url('close_btn.png') no-repeat center center / contain; width: 40px; height: 40px; border: none; cursor: pointer; }
-        #gameOverModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; animation: fadeIn 0.5s ease-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } #gameOverTitle { font-size: 15vmin; text-shadow: 3px 3px 5px #000; } #finalScore { font-size: 8vmin; margin: 20px 0; } #gameOverButtons { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; } .game-over-btn:active { transform: scale(0.95); } #customAlertModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 100; display: flex; justify-content: center; align-items: center; } .custom-alert-box { background-color: #2c2c2c; color: white; padding: 25px; border-radius: 15px; border: 2px solid #555; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-out; } .custom-alert-box img#alertLogo { width: 80px; height: 80px; margin-bottom: 15px; } .custom-alert-box h2#alertTitle { color: #FFD700; margin-bottom: 15px; font-size: 22px; } .custom-alert-box p#alertMessage { font-size: 16px; line-height: 1.5; margin-bottom: 25px; } .custom-alert-buttons { display: flex; justify-content: space-around; } .custom-alert-buttons button { padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s; width: 45%; } .custom-alert-buttons button:active { transform: scale(0.95); } button#alertConfirmBtn { background-color: #4CAF50; color: white; } button#alertCancelBtn { background-color: #f44336; color: white; } button#alertOkBtn { background-color: #2196F3; color: white; width: 100%; } #bannerAdContainer { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 728px; height: 90px; background-color: rgba(10, 10, 10, 0.5); z-index: 50; display: flex; justify-content: center; align-items: center; } #coinDisplay { position: absolute; top: 2vh; left: 3vw; background-color: rgba(0,0,0,0.6); color: #FFD700; padding: 1.5vh 3vw; border-radius: 50px; font-size: 5vmin; font-weight: bold; display: flex; align-items: center; gap: 10px; z-index: 11; border: 2px solid #FFD700; } #coinDisplay img { width: 6vmin; height: 6vmin; max-width: 30px; max-height: 30px; } #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; } #startScreen h1 { font-size: 10vw; margin-bottom: 20px; text-shadow: 3px 3px 5px #000; } #difficultySelector { display: flex; flex-direction: column; gap: 20px; align-items: center; } #rewardButton { background-color: #4CAF50; color: white; border: 2px solid white; border-radius: 10px; padding: 10px 20px; margin-top: 25px; font-size: 4vmin; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; } #rewardButton img { width: 24px; height: 24px; } .difficulty-btn { cursor: pointer; border: none; background-color: transparent; width: 250px; max-width: 60vw; height: 80px; background-size: contain; background-repeat: no-repeat; background-position: center; transition: transform 0.2s; } .difficulty-btn:active { transform: scale(0.95); } #easyButton { background-image: url('easy.png'); } #mediumButton { background-image: url('medium.png'); } #hardButton { background-image: url('hard.png'); } .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); color: white; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; } .modal h2 { font-size: 8vw; margin-bottom: 20px; } .modal-content { background-color: rgba(0,0,0,0.4); padding: 20px; border-radius: 10px; position: relative; display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; align-items: center;} #carSelection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width:100%;} .car-option { background-color: rgba(255, 255, 255, 0.1); border: 2px solid #4CAF50; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: transform 0.2s, background-color 0.2s; display: flex; flex-direction: column; justify-content: space-between; align-items: center; } .car-option.selected { border-color: #FFD700; background-color: rgba(76, 175, 80, 0.5); transform: scale(1.05); } .car-option img { width: 80px; height: auto; max-width: 100%; } .car-option p { margin-top: 10px; font-weight: bold; } .car-option.locked { cursor: default; background-color: rgba(0,0,0,0.5); border-color: #555; position: relative; } .car-option.locked::after { content: '🔒'; position: absolute; top: 5px; right: 5px; font-size: 24px; text-shadow: 1px 1px 2px black; } .buy-btn { background-color: #FFC107; color: black; border: none; border-radius: 5px; padding: 8px 12px; margin-top: 10px; cursor: pointer; font-weight: bold; width: 100%; } .buy-btn:disabled { background-color: #777; cursor: not-allowed; color: #ccc; } .price-tag { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 16px; font-weight: bold; color: #FFD700; } .price-tag img { width: 18px; height: 18px; } .modal-button { margin-top: 10px; padding: 2vh 4vw; font-size: 4vw; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; }
+        #gameOverModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; animation: fadeIn 0.5s ease-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } #gameOverTitle { font-size: 15vmin; text-shadow: 3px 3px 5px #000; } #finalScore { font-size: 8vmin; margin: 20px 0; } #gameOverButtons { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; } .game-over-btn:active { transform: scale(0.95); } #customAlertModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 100; display: flex; justify-content: center; align-items: center; } .custom-alert-box { background-color: #2c2c2c; color: white; padding: 25px; border-radius: 15px; border: 2px solid #555; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-out; } .custom-alert-box img#alertLogo { width: 80px; height: 80px; margin-bottom: 15px; } .custom-alert-box h2#alertTitle { color: #FFD700; margin-bottom: 15px; font-size: 22px; } .custom-alert-box p#alertMessage { font-size: 16px; line-height: 1.5; margin-bottom: 25px; } .custom-alert-buttons { display: flex; justify-content: space-around; } .custom-alert-buttons button { padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s; width: 45%; } .custom-alert-buttons button:active { transform: scale(0.95); } button#alertConfirmBtn { background-color: #4CAF50; color: white; } button#alertCancelBtn { background-color: #f44336; color: white; } button#alertOkBtn { background-color: #2196F3; color: white; width: 100%; } #bannerAdContainer { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 728px; min-height: 50px; background-color: rgba(10, 10, 10, 0.5); z-index: 50; display: flex; justify-content: center; align-items: center; } #coinDisplay { position: absolute; top: 2vh; left: 3vw; background-color: rgba(0,0,0,0.6); color: #FFD700; padding: 1.5vh 3vw; border-radius: 50px; font-size: 5vmin; font-weight: bold; display: flex; align-items: center; gap: 10px; z-index: 11; border: 2px solid #FFD700; } #coinDisplay img { width: 6vmin; height: 6vmin; max-width: 30px; max-height: 30px; } #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; } #startScreen h1 { font-size: 10vw; margin-bottom: 20px; text-shadow: 3px 3px 5px #000; } #difficultySelector { display: flex; flex-direction: column; gap: 20px; align-items: center; } #rewardButton { background-color: #4CAF50; color: white; border: 2px solid white; border-radius: 10px; padding: 10px 20px; margin-top: 25px; font-size: 4vmin; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; } #rewardButton img { width: 24px; height: 24px; } .difficulty-btn { cursor: pointer; border: none; background-color: transparent; width: 250px; max-width: 60vw; height: 80px; background-size: contain; background-repeat: no-repeat; background-position: center; transition: transform 0.2s; } .difficulty-btn:active { transform: scale(0.95); } #easyButton { background-image: url('easy.png'); } #mediumButton { background-image: url('medium.png'); } #hardButton { background-image: url('hard.png'); } .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); color: white; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; } .modal h2 { font-size: 8vw; margin-bottom: 20px; } .modal-content { background-color: rgba(0,0,0,0.4); padding: 20px; border-radius: 10px; position: relative; display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; align-items: center;} #carSelection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width:100%;} .car-option { background-color: rgba(255, 255, 255, 0.1); border: 2px solid #4CAF50; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: transform 0.2s, background-color 0.2s; display: flex; flex-direction: column; justify-content: space-between; align-items: center; } .car-option.selected { border-color: #FFD700; background-color: rgba(76, 175, 80, 0.5); transform: scale(1.05); } .car-option img { width: 80px; height: auto; max-width: 100%; } .car-option p { margin-top: 10px; font-weight: bold; } .car-option.locked { cursor: default; background-color: rgba(0,0,0,0.5); border-color: #555; position: relative; } .car-option.locked::after { content: '🔒'; position: absolute; top: 5px; right: 5px; font-size: 24px; text-shadow: 1px 1px 2px black; } .buy-btn { background-color: #FFC107; color: black; border: none; border-radius: 5px; padding: 8px 12px; margin-top: 10px; cursor: pointer; font-weight: bold; width: 100%; } .buy-btn:disabled { background-color: #777; cursor: not-allowed; color: #ccc; } .price-tag { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 16px; font-weight: bold; color: #FFD700; } .price-tag img { width: 18px; height: 18px; } .modal-button { margin-top: 10px; padding: 2vh 4vw; font-size: 4vw; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; }
         .settings-option { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%;} .settings-option label { font-size: 4vw; } input[type="range"] { width: 100%; } #positionControlsButton { background-color: #FFC107; color: black; }
-        #magnetTimer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.6); color: white; padding: 1.5vh 3vw; border-radius: 20px; font-size: 4vmin; font-weight: bold; display: flex; align-items: center; gap: 10px; z-index: 5; } #magnetTimer img { width: 30px; height: 30px; } .hidden { display: none !important; }
+        #magnetTimer { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.6); color: white; padding: 1.5vh 3vw; border-radius: 20px; font-size: 4vmin; font-weight: bold; display: flex; align-items: center; gap: 10px; z-index: 5; } #magnetTimer img { width: 30px; height: 30px; } .hidden { display: none !important; } .game-object { position: absolute; filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.5)); } #playerCarElement { z-index: 4; }
+        
         #positioningOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 90; display: flex; color: white; align-items: center; flex-direction: column; justify-content: space-between; padding: 20vh 0 10vh 0; }
         .positioning-text { text-align: center; padding: 20px; background-color: rgba(0,0,0,0.5); border-radius: 10px; font-size: 4vmin; }
         #positioningOverlay .modal-button { background-color: #4CAF50; width: 60vw; max-width: 250px; }
         .promo-image { max-width: 80%; height: auto; max-height: 30vh; border-radius: 10px; margin-bottom: 10px; border: 3px solid #FFD700;}
-        .score-popup { position:absolute; color:#FFD700; font-size:24px; font-weight:bold; text-shadow:1px 1px 2px black; animation:popup-animation 1s ease-out forwards; pointer-events: none; }
-        @keyframes popup-animation { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-50px); opacity: 0; } }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
+        <div id="gameObjectContainer"><img id="playerCarElement" class="game-object hidden"></div>
         <div id="popupContainer"></div>
         <div id="leftButton" class="control-btn hidden"></div>
         <div id="rightButton" class="control-btn hidden"></div>
@@ -38,8 +43,6 @@
             <button id="rewardButton"> <img src="coin.gif"> <span>Visit Site for 150 Coins</span> </button>
             <div id="settingsButton"></div>
         </div>
-
-        <div id="pauseButton" class="hidden"></div>
 
         <div id="mainSettingsModal" class="modal hidden">
             <div class="modal-content">
@@ -60,7 +63,6 @@
                    <input type="range" id="sizeSlider" min="10" max="30" value="18">
                </div>
                 <button id="positionControlsButton" class="modal-button">Set Control Position</button>
-                <button id="toggleSoundButton" class="modal-button" style="background-color: #4CAF50;">Sound: ON</button>
             </div>
         </div>
         
@@ -73,7 +75,21 @@
         </div>
 
         <div id="magnetTimer" class="hidden"><img src="magnet.png"><span></span></div>
-        <div id="bannerAdContainer"><span style="color: white;">Banner Ad Placeholder</span></div>
+        
+        <div id="bannerAdContainer">
+            <!-- === GOOGLE ADMOB BANNER AD START === -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-app-pub-1663130037566399"
+                 data-ad-slot="1479941856"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+            <!-- === GOOGLE ADMOB BANNER AD END === -->
+        </div>
+
         <div id="customAlertModal" class="hidden"> <div class="custom-alert-box"> <img id="alertLogo" src="logo.png" alt="Game Logo"> <h2 id="alertTitle"></h2> <p id="alertMessage"></p> <div class="custom-alert-buttons"> <button id="alertConfirmBtn" class="hidden">Proceed</button> <button id="alertCancelBtn" class="hidden">Cancel</button> <button id="alertOkBtn" class="hidden">OK</button> </div> </div> </div>
         <div id="gameOverModal" class="hidden">
             <h1 id="gameOverTitle">Game Over</h1>
@@ -94,196 +110,42 @@
     </div>
 
     <script>
-        // ===================================
-        // GAME CONFIG AND VARIABLES
-        // ===================================
         const VOICE_CONFIG = { enabled: true, lang: 'en-US', rate: 1.0, pitch: 1.0, welcome: "Welcome to Car Racing. Choose a difficulty level.", gameStart: "Let's go!", magnetPickup: "Magnet activated!", gameOver: "Game Over. Your final score is" };
         const ADS_CONFIG = { rewardAmount: 150, directLink: "https://otieu.com/4/7576356" };
         const CONFIG = { continueCost: 100, immunityDuration: 180, playerCarWidthPercent: 0.11, playerSpeedMultiplier: 0.0216, roadSpeedMultiplier: 0.006, difficulty: { easy: 1.0, medium: 1.1, hard: 1.21 }, obstacleWidthFactor: 0.75, obstacleSpawnInterval: 120, coinSizePercent: 0.15, coinSpawnInterval: 180, magnetSizePercent: 0.1, magnetSpawnInterval: 600, magnetDuration: 360 };
         const cars = [ { name: 'Default Racer', src: 'player_car.png', price: 0, unlocked: true }, { name: 'Blue Thunder', src: 'player_car_2.png', price: 50, unlocked: false }, { name: 'Red Fury', src: 'player_car_3.png', price: 100, unlocked: false }, { name: 'Green Ghost', src: 'player_car_4.png', price: 250, unlocked: false }, { name: 'Yellow Jacket', src: 'player_car_5.png', price: 500, unlocked: false } ];
         
-        const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d'); const gameContainer = document.getElementById('gameContainer'); const startScreen = document.getElementById('startScreen'), coinDisplay = document.getElementById('coinDisplay'), totalCoinsDisplay = document.getElementById('totalCoinsDisplay'), rewardButton = document.getElementById('rewardButton'); const shopModal = document.getElementById('shopModal'), closeShopButton = document.getElementById('closeShopButton'); const settingsButton = document.getElementById('settingsButton'); const magnetTimerDiv = document.getElementById('magnetTimer'); const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton'); const gameOverModal = document.getElementById('gameOverModal'), finalScoreDisplay = document.getElementById('finalScore'), continueBtn = document.getElementById('continueBtn'), retryBtn = document.getElementById('retryBtn'), gameOverBackBtn = document.getElementById('gameOverBackBtn'); const customAlertModal = document.getElementById('customAlertModal'); const alertTitle = document.getElementById('alertTitle'); const alertMessage = document.getElementById('alertMessage'); const alertConfirmBtn = document.getElementById('alertConfirmBtn'); const alertCancelBtn = document.getElementById('alertCancelBtn'); const alertOkBtn = document.getElementById('alertOkBtn'); const sizeSlider = document.getElementById('sizeSlider'); const savePositionsButton = document.getElementById('savePositionsButton'); const mainSettingsModal = document.getElementById('mainSettingsModal'); const openShopButton = document.getElementById('openShopButton'); const closeMainSettingsModalButton = document.getElementById('closeMainSettingsModalButton'); const positionControlsButton = document.getElementById('positionControlsButton');
-        const pauseButton = document.getElementById('pauseButton');
-        const toggleSoundButton = document.getElementById('toggleSoundButton');
-
-        let gameState = 'menu', score = 0, difficultyMultiplier = 1.0, totalCoins = 0; let selectedCarSrc = 'player_car.png';
-        let assets = {
-            road: new Image(), playerCarImg: new Image(), obstacle1: new Image(), obstacle2: new Image(), obstacle3: new Image(), obstacle4: new Image(), coin: new Image(), magnet: new Image(),
-            hitSound: new Audio(), carSound: new Audio(), collectSound: new Audio(), openingSound: new Audio()
-        };
-        const playerCar = { x: 0, y: 0, width: 0, height: 0, magnetActive: false, magnetTimer: 0, isImmune: false, immunityTimer: 0, opacity: 1 };
-        let road = {}, coins = [], obstacles = [], magnets = [];
-        let coinSpawnTimer = 0, obstacleSpawnTimer = 0, magnetSpawnTimer = 0;
-        let D_DIMS = {}; let rewardInProgress = false; let timerComplete = false; let usedContinue = false;
-        let isPositioningControls = false; let isPaused = false; let isSoundOn = true;
-        let isMovingLeft = false, isMovingRight = false; let dragTarget = null, offsetX, offsetY;
+        const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d'); const gameContainer = document.getElementById('gameContainer'); const startScreen = document.getElementById('startScreen'), coinDisplay = document.getElementById('coinDisplay'), totalCoinsDisplay = document.getElementById('totalCoinsDisplay'), rewardButton = document.getElementById('rewardButton'); const shopModal = document.getElementById('shopModal'), closeShopButton = document.getElementById('closeShopButton'); const settingsButton = document.getElementById('settingsButton'); const magnetTimerDiv = document.getElementById('magnetTimer'); const leftButton = document.getElementById('leftButton'), rightButton = document.getElementById('rightButton'); const gameOverModal = document.getElementById('gameOverModal'), finalScoreDisplay = document.getElementById('finalScore'), continueBtn = document.getElementById('continueBtn'), retryBtn = document.getElementById('retryBtn'), gameOverBackBtn = document.getElementById('gameOverBackBtn'); const customAlertModal = document.getElementById('customAlertModal'); const alertTitle = document.getElementById('alertTitle'); const alertMessage = document.getElementById('alertMessage'); const alertConfirmBtn = document.getElementById('alertConfirmBtn'); const alertCancelBtn = document.getElementById('alertCancelBtn'); const alertOkBtn = document.getElementById('alertOkBtn'); const sizeSlider = document.getElementById('sizeSlider'); const savePositionsButton = document.getElementById('savePositionsButton');
         
-        // ===================================
-        // SOUND AND SPEECH
-        // ===================================
-        function speak(text) { if (!VOICE_CONFIG.enabled || !isSoundOn || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = VOICE_CONFIG.lang; utterance.rate = VOICE_CONFIG.rate; utterance.pitch = VOICE_CONFIG.pitch; window.speechSynthesis.speak(utterance); }
-        function toggleSound() { isSoundOn = !isSoundOn; const allAudio = Object.values(assets).filter(asset => asset instanceof Audio); if (isSoundOn) { toggleSoundButton.innerText = 'Sound: ON'; toggleSoundButton.style.backgroundColor = '#4CAF50'; allAudio.forEach(audio => audio.muted = false); } else { toggleSoundButton.innerText = 'Sound: OFF'; toggleSoundButton.style.backgroundColor = '#f44336'; allAudio.forEach(audio => audio.muted = true); window.speechSynthesis.cancel(); } }
+        const mainSettingsModal = document.getElementById('mainSettingsModal');
+        const openShopButton = document.getElementById('openShopButton');
+        const closeMainSettingsModalButton = document.getElementById('closeMainSettingsModalButton');
+        const positionControlsButton = document.getElementById('positionControlsButton');
 
-        // ===================================
-        // CORE GAME LOGIC
-        // ===================================
-        function gameLoop() {
-            if (gameState === 'playing') update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
+        let gameState = 'menu', score = 0, difficultyMultiplier = 1.0, totalCoins = 0; let selectedCarSrc = 'player_car.png'; let assets = { road: new Image(), hitSound: new Audio(), carSound: new Audio(), collectSound: new Audio(), openingSound: new Audio() }; const playerCar = { element: document.getElementById('playerCarElement'), x: 0, y: 0, magnetActive: false, magnetTimer: 0, isImmune: false, immunityTimer: 0 }; let road = {}, coins = [], obstacles = [], magnets = []; let coinSpawnTimer = 0, obstacleSpawnTimer = 0, magnetSpawnTimer = 0; let D_DIMS = {}; let rewardInProgress = false; let timerComplete = false; let usedContinue = false;
+        let isPositioningControls = false;
 
-        function update() {
-            if (isPositioningControls) return;
-            if (playerCar.isImmune) { playerCar.immunityTimer--; playerCar.opacity = (playerCar.immunityTimer % 20 < 10) ? 0.5 : 1; if (playerCar.immunityTimer <= 0) { playerCar.isImmune = false; playerCar.opacity = 1; } }
-            
-            road.y1 += D_DIMS.baseSpeed; road.y2 += D_DIMS.baseSpeed;
-            if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height;
-            if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height;
-
-            updateGameObjects(obstacles, (obstacle) => { if (checkCollision(playerCar, obstacle) && !playerCar.isImmune) { handleGameOver(); } });
-            
-            if (playerCar.magnetActive) {
-                playerCar.magnetTimer--; magnetTimerDiv.querySelector('span').innerText = `${Math.ceil(playerCar.magnetTimer / 60)}s`;
-                if (playerCar.magnetTimer <= 0) { playerCar.magnetActive = false; magnetTimerDiv.classList.add('hidden'); }
-            }
-            if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed;
-            if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed;
-            playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - playerCar.width));
-
-            if (++obstacleSpawnTimer > CONFIG.obstacleSpawnInterval) { obstacles.push(createGameObject('obstacle', assets[`obstacle${Math.floor(Math.random() * 4) + 1}`], D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.baseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; }
-            if (++coinSpawnTimer > CONFIG.coinSpawnInterval) { coins.push(createGameObject('coin', assets.coin, D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.baseSpeed)); coinSpawnTimer = 0; }
-            if (++magnetSpawnTimer > CONFIG.magnetSpawnInterval) { magnets.push(createGameObject('magnet', assets.magnet, D_DIMS.magnetSize, D_DIMS.magnetSize, D_DIMS.baseSpeed)); magnetSpawnTimer = 0; }
-
-            updateGameObjects(coins, (coin) => { if (checkCollision(playerCar, coin)) { score += 1; totalCoins += 1; updateCoinDisplay(); saveGameData(); assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(coin.x, coin.y); return true; } });
-            updateGameObjects(magnets, (magnet) => { if (checkCollision(playerCar, magnet)) { if (!playerCar.magnetActive) speak(VOICE_CONFIG.magnetPickup); playerCar.magnetActive = true; playerCar.magnetTimer = CONFIG.magnetDuration; magnetTimerDiv.classList.remove('hidden'); return true; } });
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(assets.road, 0, road.y1, canvas.width, canvas.height);
-            ctx.drawImage(assets.road, 0, road.y2, canvas.width, canvas.height);
-
-            if(gameState === 'menu') return;
-
-            // Draw game objects
-            ctx.globalAlpha = playerCar.opacity;
-            ctx.drawImage(assets.playerCarImg, playerCar.x, playerCar.y, playerCar.width, playerCar.height);
-            ctx.globalAlpha = 1;
-            
-            obstacles.forEach(obj => ctx.drawImage(obj.image, obj.x, obj.y, obj.width, obj.height));
-            coins.forEach(obj => ctx.drawImage(obj.image, obj.x, obj.y, obj.width, obj.height));
-            magnets.forEach(obj => ctx.drawImage(obj.image, obj.x, obj.y, obj.width, obj.height));
-
-            draw3DScoreBox(score);
-
-            if (gameState === 'paused') {
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 48px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
-            }
-        }
-
-        // ===================================
-        // GAME STATE MANAGEMENT
-        // ===================================
-        function init() {
-            loadGameData();
-            loadSettings();
-            setupEventListeners();
-            loadAssets(() => {
-                showStartScreen();
-                requestAnimationFrame(gameLoop);
-            });
-        }
-        function startGame(difficulty) {
-            difficultyMultiplier = difficulty; setDimensions(); assets.openingSound.pause();
-            startScreen.classList.add('hidden'); leftButton.classList.remove('hidden'); rightButton.classList.remove('hidden'); pauseButton.classList.remove('hidden');
-            gameState = 'playing'; isPaused = false;
-            resetGame();
-            assets.carSound.currentTime = 0; assets.carSound.play(); speak(VOICE_CONFIG.gameStart);
-        }
-        function resetGame() {
-            usedContinue = false; score = 0; document.getElementById('popupContainer').innerHTML = '';
-            assets.playerCarImg.src = selectedCarSrc;
-            playerCar.y = canvas.height - playerCar.height - (canvas.height * 0.1);
-            playerCar.x = (canvas.width / 2) - (playerCar.width / 2);
-            playerCar.isImmune = false; playerCar.immunityTimer = 0; playerCar.opacity = 1;
-            obstacles = []; coins = []; magnets = [];
-            playerCar.magnetActive = false; magnetTimerDiv.classList.add('hidden');
-            road = { y1: 0, y2: -canvas.height };
-        }
+        function speak(text) { if (!VOICE_CONFIG.enabled || !('speechSynthesis' in window)) return; const utterance = new SpeechSynthesisUtterance(text); utterance.lang = VOICE_CONFIG.lang; utterance.rate = VOICE_CONFIG.rate; utterance.pitch = VOICE_CONFIG.pitch; window.speechSynthesis.speak(utterance); }
+        
         function handleGameOver() {
-            gameState = 'gameOver'; assets.carSound.pause(); assets.hitSound.currentTime = 0; assets.hitSound.play();
-            leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); pauseButton.classList.add('hidden');
+            gameState = 'gameOver';
+            assets.carSound.pause();
+            assets.hitSound.currentTime = 0;
+            assets.hitSound.play();
+            leftButton.classList.add('hidden');
+            rightButton.classList.add('hidden');
             finalScoreDisplay.innerText = `Your Score: ${score}`;
             continueBtn.disabled = !(totalCoins >= CONFIG.continueCost && !usedContinue);
             gameOverModal.classList.remove('hidden');
             speak(`${VOICE_CONFIG.gameOver} ${score}`);
         }
-        function continueGame() {
-            if (totalCoins >= CONFIG.continueCost && !usedContinue) {
-                totalCoins -= CONFIG.continueCost; usedContinue = true; updateCoinDisplay(); saveGameData();
-                playerCar.isImmune = true; playerCar.immunityTimer = CONFIG.immunityDuration;
-                obstacles = obstacles.filter(obs => obs.y < playerCar.y - 50 || obs.y > playerCar.y + playerCar.height);
-                gameOverModal.classList.add('hidden');
-                leftButton.classList.remove('hidden'); rightButton.classList.remove('hidden'); pauseButton.classList.remove('hidden');
-                gameState = 'playing'; assets.carSound.play();
-            }
-        }
-        function retryGame() { gameOverModal.classList.add('hidden'); showStartScreen(); }
-        function togglePause() {
-            if (gameState !== 'playing' && gameState !== 'paused') return;
-            isPaused = !isPaused;
-            if (isPaused) { gameState = 'paused'; assets.carSound.pause(); } 
-            else { gameState = 'playing'; assets.carSound.play(); }
-        }
-        
-        // ===================================
-        // UTILITIES & HELPERS
-        // ===================================
-        function createGameObject(type, image, width, height, speed) {
-            const randomX = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary;
-            return { type, image, x: randomX, y: -height, width, height, speed };
-        }
-        function updateGameObjects(arr, onCollision) {
-            for (let i = arr.length - 1; i >= 0; i--) {
-                const obj = arr[i]; obj.y += obj.speed || D_DIMS.baseSpeed;
-                if (obj.type === 'coin' && playerCar.magnetActive) {
-                    const dx = (playerCar.x + playerCar.width / 2) - (obj.x + obj.width / 2);
-                    const dy = (playerCar.y + playerCar.height / 2) - (obj.y + obj.height / 2);
-                    if (Math.sqrt(dx * dx + dy * dy) < canvas.width * 0.45) { obj.x += dx * 0.1; obj.y += dy * 0.1; }
-                }
-                let removed = false;
-                if (onCollision) { if (onCollision(obj)) removed = true; }
-                if (removed || obj.y > canvas.height) { arr.splice(i, 1); }
-            }
-        }
-        function checkCollision(rect1, rect2) {
-            return rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.y + rect1.height > rect2.y;
-        }
-        function setDimensions() {
-            canvas.width = gameContainer.clientWidth; canvas.height = gameContainer.clientHeight;
-            D_DIMS.roadLeftBoundary = canvas.width * 0.30; D_DIMS.roadRightBoundary = canvas.width * 0.70;
-            D_DIMS.playerCarWidth = canvas.width * CONFIG.playerCarWidthPercent;
-            D_DIMS.playerCarHeight = D_DIMS.playerCarWidth * 2;
-            playerCar.width = D_DIMS.playerCarWidth; playerCar.height = D_DIMS.playerCarHeight;
-            D_DIMS.playerCarSpeed = canvas.width * CONFIG.playerSpeedMultiplier * difficultyMultiplier;
-            D_DIMS.baseSpeed = canvas.height * CONFIG.roadSpeedMultiplier * difficultyMultiplier;
-            D_DIMS.obstacleWidth = D_DIMS.playerCarWidth * CONFIG.obstacleWidthFactor;
-            D_DIMS.obstacleHeight = D_DIMS.playerCarHeight * CONFIG.obstacleWidthFactor;
-            D_DIMS.coinSize = canvas.width * CONFIG.coinSizePercent;
-            D_DIMS.magnetSize = canvas.width * CONFIG.magnetSizePercent;
-        }
 
-        // ===================================
-        // UI & EVENT LISTENERS
-        // ===================================
-        function setupEventListeners() {
+        function continueGame() { if (totalCoins >= CONFIG.continueCost && !usedContinue) { totalCoins -= CONFIG.continueCost; usedContinue = true; updateCoinDisplay(); saveGameData(); playerCar.isImmune = true; playerCar.immunityTimer = CONFIG.immunityDuration; obstacles = obstacles.filter(obs => obs.y < playerCar.y - 50 || obs.y > playerCar.y + D_DIMS.playerCarHeight); document.querySelectorAll('.obstacle-car').forEach(el => { const elTop = parseFloat(el.style.top); if (elTop > playerCar.y - 50 && elTop < playerCar.y + D_DIMS.playerCarHeight) { el.remove(); } }); gameOverModal.classList.add('hidden'); gameState = 'playing'; assets.carSound.play(); } }
+        function retryGame() { gameOverModal.classList.add('hidden'); showStartScreen(); }
+        
+        function init() {
+            loadGameData();
+            loadSettings();
             rewardButton.addEventListener('click', startRewardedTask);
             continueBtn.addEventListener('click', continueGame);
             retryBtn.addEventListener('click', retryGame);
@@ -294,111 +156,117 @@
             const handleTouchStart = (e) => e.preventDefault();
             ['mousedown', 'touchstart'].forEach(evt => { leftButton.addEventListener(evt, (e) => { handleTouchStart(e); isMovingLeft = true; }); rightButton.addEventListener(evt, (e) => { handleTouchStart(e); isMovingRight = true; }); });
             ['mouseup', 'mouseleave', 'touchend'].forEach(evt => { leftButton.addEventListener(evt, () => isMovingLeft = false); rightButton.addEventListener(evt, () => isMovingRight = false); });
-            settingsButton.addEventListener('click', () => { startScreen.classList.add('hidden'); mainSettingsModal.classList.remove('hidden'); });
-            closeMainSettingsModalButton.addEventListener('click', () => { mainSettingsModal.classList.add('hidden'); showStartScreen(); });
-            openShopButton.addEventListener('click', () => { mainSettingsModal.classList.add('hidden'); populateCarShop(); shopModal.classList.remove('hidden'); });
-            closeShopButton.addEventListener('click', () => { shopModal.classList.add('hidden'); mainSettingsModal.classList.remove('hidden'); });
-            document.getElementById('opacitySlider').addEventListener('input', (e) => { const opacity = e.target.value / 100; leftButton.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`; rightButton.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`; localStorage.setItem('controlOpacity', e.target.value); });
+            
+            showStartScreen();
+            requestAnimationFrame(gameLoop);
+
+            settingsButton.addEventListener('click', () => { 
+                startScreen.classList.add('hidden'); 
+                mainSettingsModal.classList.remove('hidden');
+            });
+
+            closeMainSettingsModalButton.addEventListener('click', () => {
+                mainSettingsModal.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+            });
+
+            openShopButton.addEventListener('click', () => {
+                mainSettingsModal.classList.add('hidden');
+                populateCarShop();
+                shopModal.classList.remove('hidden');
+            });
+
+            closeShopButton.addEventListener('click', () => { 
+                shopModal.classList.add('hidden'); 
+                mainSettingsModal.classList.remove('hidden'); 
+            });
+            
+            const opacitySlider = document.getElementById('opacitySlider');
+            opacitySlider.addEventListener('input', (e) => { const opacity = e.target.value / 100; leftButton.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`; rightButton.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`; localStorage.setItem('controlOpacity', e.target.value); });
             sizeSlider.addEventListener('input', (e) => { const newSize = e.target.value; leftButton.style.width = `${newSize}vmin`; leftButton.style.height = `${newSize}vmin`; rightButton.style.width = `${newSize}vmin`; rightButton.style.height = `${newSize}vmin`; localStorage.setItem('controlSize', newSize); });
             positionControlsButton.addEventListener('click', enterPositioningMode);
             savePositionsButton.addEventListener('click', exitPositioningMode);
-            pauseButton.addEventListener('click', togglePause);
-            toggleSoundButton.addEventListener('click', toggleSound);
             window.addEventListener('resize', showStartScreen);
         }
-        function showStartScreen() {
-            setDimensions();
-            gameState = 'menu';
-            startScreen.classList.remove('hidden'); coinDisplay.classList.remove('hidden');
-            shopModal.classList.add('hidden'); mainSettingsModal.classList.add('hidden');
-            leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); pauseButton.classList.add('hidden');
-            assets.openingSound.currentTime = 0; assets.openingSound.play();
-            speak(VOICE_CONFIG.welcome);
-        }
-        function createScorePopup(x, y) {
-            const popup = document.createElement('div'); popup.innerText = '+1'; popup.className = 'score-popup';
-            popup.style.left = `${x}px`; popup.style.top = `${y}px`;
-            document.getElementById('popupContainer').appendChild(popup);
-            setTimeout(() => popup.remove(), 1000);
-        }
-        function draw3DScoreBox(score) {
-            const boxWidth = 150, boxHeight = 50, x = 10, y = 10;
-            ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(x, y, boxWidth, boxHeight);
-            ctx.fillStyle = 'white'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('Score: ' + score, x + boxWidth / 2, y + boxHeight / 2);
-        }
 
-        // ===================================
-        // DATA & SETTINGS MANAGEMENT
-        // ===================================
-        function saveGameData() { const unlockedCarSrcs = cars.filter(c => c.unlocked).map(c => c.src); localStorage.setItem('carGameData', JSON.stringify({ totalCoins: totalCoins, unlockedCars: unlockedCarSrcs })); }
-        function loadGameData() { const savedData = localStorage.getItem('carGameData'); if (savedData) { const gameData = JSON.parse(savedData); totalCoins = gameData.totalCoins || 0; const unlockedSrcs = gameData.unlockedCars || [cars[0].src]; cars.forEach(car => { if (unlockedSrcs.includes(car.src)) car.unlocked = true; }); } updateCoinDisplay(); }
+        function update() { if (gameState !== 'playing' || isPositioningControls) return; if (playerCar.isImmune) { playerCar.immunityTimer--; playerCar.element.style.opacity = (playerCar.immunityTimer % 20 < 10) ? '0.5' : '1'; if (playerCar.immunityTimer <= 0) { playerCar.isImmune = false; playerCar.element.style.opacity = '1'; } } updateAndCheckObjects(obstacles, (obstacle) => { if (checkCollision(playerCar, obstacle) && !playerCar.isImmune) { handleGameOver(); } }); road.y1 += D_DIMS.baseSpeed; road.y2 += D_DIMS.baseSpeed; if (road.y1 >= canvas.height) road.y1 = road.y2 - canvas.height; if (road.y2 >= canvas.height) road.y2 = road.y1 - canvas.height; if (playerCar.magnetActive) { playerCar.magnetTimer--; magnetTimerDiv.querySelector('span').innerText = `${Math.ceil(playerCar.magnetTimer / 60)}s`; if (playerCar.magnetTimer <= 0) { playerCar.magnetActive = false; magnetTimerDiv.classList.add('hidden'); } } if (isMovingLeft) playerCar.x -= D_DIMS.playerCarSpeed; if (isMovingRight) playerCar.x += D_DIMS.playerCarSpeed; playerCar.x = Math.max(D_DIMS.roadLeftBoundary, Math.min(playerCar.x, D_DIMS.roadRightBoundary - D_DIMS.playerCarWidth)); playerCar.element.style.left = `${playerCar.x}px`; if (++obstacleSpawnTimer > CONFIG.obstacleSpawnInterval) { obstacles.push(createGameObject('obstacle-car', `obstacle${Math.floor(Math.random() * 4) + 1}.png`, D_DIMS.obstacleWidth, D_DIMS.obstacleHeight, D_DIMS.baseSpeed + Math.random() * 2)); obstacleSpawnTimer = 0; } if (++coinSpawnTimer > CONFIG.coinSpawnInterval) { coins.push(createGameObject('coin', 'coin.gif', D_DIMS.coinSize, D_DIMS.coinSize, D_DIMS.baseSpeed)); coinSpawnTimer = 0; } if (++magnetSpawnTimer > CONFIG.magnetSpawnInterval) { magnets.push(createGameObject('magnet-powerup', 'magnet.png', D_DIMS.magnetSize, D_DIMS.magnetSize, D_DIMS.baseSpeed)); magnetSpawnTimer = 0; } updateAndCheckObjects(coins); updateAndCheckObjects(magnets, (magnet) => { if (checkCollision(playerCar, magnet)) { if (!playerCar.magnetActive) speak(VOICE_CONFIG.magnetPickup); playerCar.magnetActive = true; playerCar.magnetTimer = CONFIG.magnetDuration; magnetTimerDiv.classList.remove('hidden'); return true; } }); }
+        function resetGame() { usedContinue = false; score = 0; document.getElementById('popupContainer').innerHTML = ''; document.getElementById('gameObjectContainer').innerHTML = ''; playerCar.element = document.createElement('img'); playerCar.element.id = 'playerCarElement'; playerCar.element.className = 'game-object'; playerCar.element.src = selectedCarSrc; playerCar.element.style.width = `${D_DIMS.playerCarWidth}px`; playerCar.element.style.height = `${D_DIMS.playerCarHeight}px`; document.getElementById('gameObjectContainer').appendChild(playerCar.element); playerCar.y = canvas.height - D_DIMS.playerCarHeight - (canvas.height * 0.1); playerCar.x = (canvas.width / 2) - (D_DIMS.playerCarWidth / 2); playerCar.element.style.left = `${playerCar.x}px`; playerCar.element.style.top = `${playerCar.y}px`; obstacles = []; coins = []; magnets = []; playerCar.magnetActive = false; magnetTimerDiv.classList.add('hidden'); road = { y1: 0, y2: -canvas.height }; }
+        
+        function draw() {
+            if (isPositioningControls) { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0, canvas.width, canvas.height); return; }
+            ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, road.y1, canvas.width, canvas.height); ctx.drawImage(assets.road, 0, road.y2, canvas.width, canvas.height); if (gameState === 'playing' || gameState === 'gameOver') { draw3DScoreBox(score); } }
+        
+        function showCustomAlert(config) { alertTitle.innerText = config.title; alertMessage.innerHTML = config.message; alertConfirmBtn.classList.add('hidden'); alertCancelBtn.classList.add('hidden'); alertOkBtn.classList.add('hidden'); if (config.type === 'confirm') { alertConfirmBtn.classList.remove('hidden'); alertCancelBtn.classList.remove('hidden'); alertConfirmBtn.onclick = () => { customAlertModal.classList.add('hidden'); if (config.onConfirm) config.onConfirm(); }; alertCancelBtn.onclick = () => { customAlertModal.classList.add('hidden'); }; } else { alertOkBtn.classList.remove('hidden'); alertOkBtn.onclick = () => { customAlertModal.classList.add('hidden'); }; } customAlertModal.classList.remove('hidden'); }
+        function startRewardedTask() { if (rewardInProgress) return; showCustomAlert({ title: "Claim Your Free Reward!", message: "You will be taken to a <strong>Partner Site</strong>. Please stay there for at least <strong>5 seconds</strong> and then return to this tab to claim your reward.", type: 'confirm', onConfirm: () => { window.open(ADS_CONFIG.directLink, '_blank'); rewardInProgress = true; timerComplete = false; setTimeout(() => { timerComplete = true; }, 5000); } }); }
+        function grantReward() { totalCoins += ADS_CONFIG.rewardAmount; updateCoinDisplay(); saveGameData(); showCustomAlert({ title: "Congratulations!", message: `You have received <strong>${ADS_CONFIG.rewardAmount}</strong> coins!`, type: 'info' }); }
+        window.onfocus = function () { if (rewardInProgress) { if (timerComplete) { grantReward(); } else { showCustomAlert({ title: "Task Incomplete", message: "You returned too soon! Please try again and wait for at least <strong>5 seconds</strong>.", type: 'info' }); } rewardInProgress = false; timerComplete = false; } };
+        function loadAssets(callback) { const assetSources = { road: 'road.jpg', hitSound: 'carhit.mp3', carSound: 'carsound.mp3', collectSound: 'collect.wav', openingSound: 'opening.wav' }; let loaded = 0; const total = Object.keys(assetSources).length; if (total === 0) { callback(); return; } const assetLoaded = () => { loaded++; if (loaded === total) { callback(); } }; const assetFailed = (assetName, src) => { console.error(`Error: Asset '${assetName}' at path '${src}' could not be loaded.`); loaded++; if (loaded === total) { callback(); } }; for (let key in assetSources) { const src = assetSources[key]; if (key.includes('Sound')) { assets[key].src = src; assets[key].addEventListener('canplaythrough', () => assetLoaded(key)); assets[key].addEventListener('error', () => assetFailed(key, src)); } else { assets[key].src = src; assets[key].addEventListener('load', () => assetLoaded(key)); assets[key].addEventListener('error', () => assetFailed(key, src)); } } assets.carSound.loop = true; }
+        function saveGameData() { const unlockedCarSrcs = cars.filter(c => c.unlocked).map(c => c.src); const gameData = { totalCoins: totalCoins, unlockedCars: unlockedCarSrcs }; localStorage.setItem('carGameData', JSON.stringify(gameData)); }
+        function loadGameData() { const savedData = localStorage.getItem('carGameData'); if (savedData) { const gameData = JSON.parse(savedData); totalCoins = gameData.totalCoins || 0; const unlockedSrcs = gameData.unlockedCars || [cars[0].src]; cars.forEach(car => { if (unlockedSrcs.includes(car.src)) { car.unlocked = true; } }); } updateCoinDisplay(); }
+        function updateCoinDisplay() { totalCoinsDisplay.innerText = totalCoins; }
+        function buyCar(carIndex) { const car = cars[carIndex]; if (totalCoins >= car.price) { totalCoins -= car.price; car.unlocked = true; updateCoinDisplay(); saveGameData(); populateCarShop(); } }
+        function populateCarShop() { const container = document.getElementById('carSelection'); container.innerHTML = ''; cars.forEach((car, index) => { const carDiv = document.createElement('div'); carDiv.className = 'car-option'; if (car.unlocked) { if (car.src === selectedCarSrc) carDiv.classList.add('selected'); carDiv.innerHTML = `<img src="${car.src}" alt="${car.name}"><p>${car.name}</p>`; carDiv.addEventListener('click', () => { selectedCarSrc = car.src; document.querySelectorAll('.car-option').forEach(opt => opt.classList.remove('selected')); carDiv.classList.add('selected'); shopModal.classList.add('hidden'); startGame(CONFIG.difficulty.medium); }); } else { carDiv.classList.add('locked'); carDiv.innerHTML = ` <img src="${car.src}" alt="${car.name}"> <p>${car.name}</p> <div class="price-tag"> <img src="coin.gif"> <span>${car.price}</span> </div> <button class="buy-btn" id="buyBtn-${index}">Buy</button> `; } container.appendChild(carDiv); if (!car.unlocked) { const buyButton = document.getElementById(`buyBtn-${index}`); if (totalCoins < car.price) { buyButton.disabled = true; } buyButton.addEventListener('click', () => buyCar(index)); } }); }
+        function showStartScreen() { setDimensions(); resetGame(); gameState = 'menu'; playerCar.element.classList.add('hidden'); startScreen.classList.remove('hidden'); coinDisplay.classList.remove('hidden'); shopModal.classList.add('hidden'); mainSettingsModal.classList.add('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); assets.openingSound.currentTime = 0; assets.openingSound.play(); speak(VOICE_CONFIG.welcome); }
+        function updateAndCheckObjects(arr, onCollision) { for (let i = arr.length - 1; i >= 0; i--) { const obj = arr[i]; obj.y += obj.speed || D_DIMS.baseSpeed; if (obj.element.classList.contains('coin') && playerCar.magnetActive) { const dx = (playerCar.x + D_DIMS.playerCarWidth / 2) - (obj.x + obj.width / 2); const dy = (playerCar.y + D_DIMS.playerCarHeight / 2) - (obj.y + obj.height / 2); const distance = Math.sqrt(dx * dx + dy * dy); if (distance < canvas.width * 0.45) { obj.x += dx * 0.1; obj.y += dy * 0.1; } } obj.element.style.top = `${obj.y}px`; obj.element.style.left = `${obj.x}px`; let removed = false; if (obj.element.classList.contains('coin')) { if (checkCollision(playerCar, obj)) { score += 1; totalCoins += 1; updateCoinDisplay(); saveGameData(); assets.collectSound.currentTime = 0; assets.collectSound.play(); createScorePopup(obj.x, obj.y); removed = true; } } else if (onCollision) { removed = onCollision(obj); } if (removed || obj.y > canvas.height) { obj.element.remove(); arr.splice(i, 1); } } }
+        function setDimensions() { canvas.width = gameContainer.clientWidth; canvas.height = gameContainer.clientHeight; D_DIMS.roadLeftBoundary = canvas.width * 0.30; D_DIMS.roadRightBoundary = canvas.width * 0.70; D_DIMS.playerCarWidth = canvas.width * CONFIG.playerCarWidthPercent; D_DIMS.playerCarHeight = D_DIMS.playerCarWidth * 2; D_DIMS.playerCarSpeed = canvas.width * CONFIG.playerSpeedMultiplier * difficultyMultiplier; D_DIMS.baseSpeed = canvas.height * CONFIG.roadSpeedMultiplier * difficultyMultiplier; D_DIMS.obstacleWidth = D_DIMS.playerCarWidth * CONFIG.obstacleWidthFactor; D_DIMS.obstacleHeight = D_DIMS.playerCarHeight * CONFIG.obstacleWidthFactor; D_DIMS.coinSize = canvas.width * CONFIG.coinSizePercent; D_DIMS.magnetSize = canvas.width * CONFIG.magnetSizePercent; }
+        function startGame(difficulty) { difficultyMultiplier = difficulty; setDimensions(); assets.openingSound.pause(); startScreen.classList.add('hidden'); leftButton.classList.remove('hidden'); rightButton.classList.remove('hidden'); gameState = 'playing'; resetGame(); playerCar.element.classList.remove('hidden'); assets.carSound.currentTime = 0; assets.carSound.play(); speak(VOICE_CONFIG.gameStart); }
+        function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+        function createGameObject(type, src, width, height, speed) { const element = document.createElement('img'); element.src = src; element.className = `game-object ${type}`; element.style.width = `${width}px`; element.style.height = `${height}px`; const randomX = Math.random() * (D_DIMS.roadRightBoundary - D_DIMS.roadLeftBoundary - width) + D_DIMS.roadLeftBoundary; element.style.left = `${randomX}px`; element.style.top = `-${height}px`; document.getElementById('gameObjectContainer').appendChild(element); return { element, x: randomX, y: -height, width, height, speed }; }
+        function checkCollision(obj1, obj2) { const rect1 = obj1.element.getBoundingClientRect(); const rect2 = obj2.element.getBoundingClientRect(); return !(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom); }
+        function createScorePopup(x, y) { const popup = document.createElement('div'); popup.innerText = '+1'; popup.className = 'score-popup'; popup.style.cssText = `left:${x}px; top:${y}px; position:absolute; color:#FFD700; font-size:24px; font-weight:bold; text-shadow:1px 1px 2px black; animation:popup-animation 1s ease-out forwards;`; document.getElementById('popupContainer').appendChild(popup); setTimeout(() => popup.remove(), 1000); }
+        function draw3DScoreBox(score) { const boxWidth = 150, boxHeight = 50, x = 10, y = 10; ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(x, y, boxWidth, boxHeight); ctx.fillStyle = 'white'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Score: ' + score, x + boxWidth / 2, y + boxHeight / 2); }
         function loadSettings() { 
             const savedOpacity = localStorage.getItem('controlOpacity') || '40'; 
             document.getElementById('opacitySlider').value = savedOpacity; 
             const opacityValue = savedOpacity / 100; 
             leftButton.style.backgroundColor = `rgba(0, 0, 0, ${opacityValue})`; 
             rightButton.style.backgroundColor = `rgba(0, 0, 0, ${opacityValue})`; 
+            
             const savedSize = localStorage.getItem('controlSize') || '18';
             sizeSlider.value = savedSize;
-            leftButton.style.width = `${savedSize}vmin`; leftButton.style.height = `${savedSize}vmin`; rightButton.style.width = `${savedSize}vmin`; rightButton.style.height = `${savedSize}vmin`;
+            leftButton.style.width = `${savedSize}vmin`;
+            leftButton.style.height = `${savedSize}vmin`;
+            rightButton.style.width = `${savedSize}vmin`;
+            rightButton.style.height = `${savedSize}vmin`;
+
             const leftPos = JSON.parse(localStorage.getItem('leftButtonPos')); 
             const rightPos = JSON.parse(localStorage.getItem('rightButtonPos')); 
             if (leftPos) { leftButton.style.top = leftPos.top; leftButton.style.left = leftPos.left; } 
             if (rightPos) { rightButton.style.top = rightPos.top; rightButton.style.left = rightPos.left; } 
         }
-        function loadAssets(callback) {
-            const assetSources = { road: 'road.jpg', obstacle1: 'obstacle1.png', obstacle2: 'obstacle2.png', obstacle3: 'obstacle3.png', obstacle4: 'obstacle4.png', coin: 'coin.gif', magnet: 'magnet.png', hitSound: 'carhit.mp3', carSound: 'carsound.mp3', collectSound: 'collect.wav', openingSound: 'opening.wav' };
-            let loaded = 0; const total = Object.keys(assetSources).length;
-            const assetLoaded = () => { if (++loaded === total) callback(); };
-            for (let key in assetSources) {
-                const src = assetSources[key];
-                if (assets[key] instanceof Audio) { assets[key].src = src; assets[key].addEventListener('canplaythrough', assetLoaded, { once: true }); } 
-                else { assets[key].src = src; assets[key].addEventListener('load', assetLoaded, { once: true }); }
-                assets[key].addEventListener('error', () => { console.error(`Failed to load asset: ${src}`); assetLoaded(); }); // Handle errors
-            }
-            assets.carSound.loop = true;
-        }
+        let isMovingLeft = false, isMovingRight = false; let dragTarget = null, offsetX, offsetY; 
+        
+        function enterPositioningMode() {
+            isPositioningControls = true;
+            const positioningOverlay = document.getElementById('positioningOverlay');
+            mainSettingsModal.classList.add('hidden');
+            positioningOverlay.classList.remove('hidden'); 
+            leftButton.classList.remove('hidden');
+            rightButton.classList.remove('hidden');
+            [leftButton, rightButton].forEach(btn => {
+                btn.addEventListener('mousedown', startDrag);
+                btn.addEventListener('touchstart', startDrag);
+            });
+        } 
 
-        // ===================================
-        // SHOP & REWARDS
-        // ===================================
-        function updateCoinDisplay() { totalCoinsDisplay.innerText = totalCoins; }
-        function buyCar(carIndex) { const car = cars[carIndex]; if (totalCoins >= car.price) { totalCoins -= car.price; car.unlocked = true; updateCoinDisplay(); saveGameData(); populateCarShop(); } }
-        function populateCarShop() {
-            const container = document.getElementById('carSelection'); container.innerHTML = '';
-            cars.forEach((car, index) => {
-                const carDiv = document.createElement('div'); carDiv.className = 'car-option';
-                if (car.unlocked) {
-                    if (car.src === selectedCarSrc) carDiv.classList.add('selected');
-                    carDiv.innerHTML = `<img src="${car.src}" alt="${car.name}"><p>${car.name}</p>`;
-                    carDiv.addEventListener('click', () => { selectedCarSrc = car.src; document.querySelectorAll('.car-option').forEach(opt => opt.classList.remove('selected')); carDiv.classList.add('selected'); });
-                } else {
-                    carDiv.classList.add('locked');
-                    carDiv.innerHTML = ` <img src="${car.src}" alt="${car.name}"> <p>${car.name}</p> <div class="price-tag"> <img src="coin.gif"> <span>${car.price}</span> </div> <button class="buy-btn" id="buyBtn-${index}">Buy</button> `;
-                }
-                container.appendChild(carDiv);
-                if (!car.unlocked) { const buyButton = document.getElementById(`buyBtn-${index}`); if (totalCoins < car.price) { buyButton.disabled = true; } buyButton.addEventListener('click', () => buyCar(index)); }
+        function exitPositioningMode() {
+            isPositioningControls = false;
+            const positioningOverlay = document.getElementById('positioningOverlay');
+            positioningOverlay.classList.add('hidden'); 
+            mainSettingsModal.classList.remove('hidden'); 
+            leftButton.classList.add('hidden');
+            rightButton.classList.add('hidden');
+            localStorage.setItem('leftButtonPos', JSON.stringify({ top: leftButton.style.top, left: leftButton.style.left }));
+            localStorage.setItem('rightButtonPos', JSON.stringify({ top: rightButton.style.top, left: rightButton.style.left }));
+            [leftButton, rightButton].forEach(btn => {
+                btn.removeEventListener('mousedown', startDrag);
+                btn.removeEventListener('touchstart', startDrag);
             });
         }
-        function startRewardedTask() { if (rewardInProgress) return; showCustomAlert({ title: "Claim Your Free Reward!", message: "You will be taken to a <strong>Partner Site</strong>. Please stay there for at least <strong>5 seconds</strong> and then return to this tab to claim your reward.", type: 'confirm', onConfirm: () => { window.open(ADS_CONFIG.directLink, '_blank'); rewardInProgress = true; timerComplete = false; setTimeout(() => { timerComplete = true; }, 5000); } }); }
-        function grantReward() { totalCoins += ADS_CONFIG.rewardAmount; updateCoinDisplay(); saveGameData(); showCustomAlert({ title: "Congratulations!", message: `You have received <strong>${ADS_CONFIG.rewardAmount}</strong> coins!`, type: 'info' }); }
-        window.onfocus = function () { if (rewardInProgress) { if (timerComplete) { grantReward(); } else { showCustomAlert({ title: "Task Incomplete", message: "You returned too soon! Please try again and wait for at least <strong>5 seconds</strong>.", type: 'info' }); } rewardInProgress = false; timerComplete = false; } };
-        function showCustomAlert(config) { alertTitle.innerText = config.title; alertMessage.innerHTML = config.message; alertConfirmBtn.classList.add('hidden'); alertCancelBtn.classList.add('hidden'); alertOkBtn.classList.add('hidden'); if (config.type === 'confirm') { alertConfirmBtn.classList.remove('hidden'); alertCancelBtn.classList.remove('hidden'); alertConfirmBtn.onclick = () => { customAlertModal.classList.add('hidden'); if (config.onConfirm) config.onConfirm(); }; alertCancelBtn.onclick = () => { customAlertModal.classList.add('hidden'); }; } else { alertOkBtn.classList.remove('hidden'); alertOkBtn.onclick = () => { customAlertModal.classList.add('hidden'); }; } customAlertModal.classList.remove('hidden'); }
+
+        function startDrag(e) { e.preventDefault(); dragTarget = e.currentTarget; const event = e.type === 'touchstart' ? e.touches[0] : e; offsetX = event.clientX - dragTarget.offsetLeft; offsetY = event.clientY - dragTarget.offsetTop; document.addEventListener('mousemove', onDrag); document.addEventListener('touchmove', onDrag); document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag); } function onDrag(e) { if (!dragTarget) return; e.preventDefault(); const event = e.type === 'touchmove' ? e.touches[0] : e; let newLeft = event.clientX - offsetX; let newTop = event.clientY - offsetY; newLeft = Math.max(0, Math.min(newLeft, canvas.width - dragTarget.offsetWidth)); newTop = Math.max(0, Math.min(newTop, canvas.height - dragTarget.offsetHeight)); dragTarget.style.left = `${newLeft}px`; dragTarget.style.top = `${newTop}px`; } function endDrag() { dragTarget = null; document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag); document.removeEventListener('mouseup', endDrag); document.removeEventListener('touchend', endDrag); }
         
-        // ===================================
-        // CONTROLS POSITIONING
-        // ===================================
-        function enterPositioningMode() { isPositioningControls = true; mainSettingsModal.classList.add('hidden'); document.getElementById('positioningOverlay').classList.remove('hidden'); leftButton.classList.remove('hidden'); rightButton.classList.remove('hidden'); [leftButton, rightButton].forEach(btn => { btn.addEventListener('mousedown', startDrag); btn.addEventListener('touchstart', startDrag, { passive: false }); }); }
-        function exitPositioningMode() { isPositioningControls = false; document.getElementById('positioningOverlay').classList.add('hidden'); mainSettingsModal.classList.remove('hidden'); leftButton.classList.add('hidden'); rightButton.classList.add('hidden'); localStorage.setItem('leftButtonPos', JSON.stringify({ top: leftButton.style.top, left: leftButton.style.left })); localStorage.setItem('rightButtonPos', JSON.stringify({ top: rightButton.style.top, left: rightButton.style.left })); [leftButton, rightButton].forEach(btn => { btn.removeEventListener('mousedown', startDrag); btn.removeEventListener('touchstart', startDrag); }); }
-        function startDrag(e) { e.preventDefault(); dragTarget = e.currentTarget; const event = e.type === 'touchstart' ? e.touches[0] : e; offsetX = event.clientX - dragTarget.offsetLeft; offsetY = event.clientY - dragTarget.offsetTop; document.addEventListener('mousemove', onDrag); document.addEventListener('touchmove', onDrag, { passive: false }); document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag); }
-        function onDrag(e) { if (!dragTarget) return; e.preventDefault(); const event = e.type === 'touchmove' ? e.touches[0] : e; let newLeft = event.clientX - offsetX; let newTop = event.clientY - offsetY; newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - dragTarget.offsetWidth)); newTop = Math.max(0, Math.min(newTop, window.innerHeight - dragTarget.offsetHeight)); dragTarget.style.left = `${newLeft}px`; dragTarget.style.top = `${newTop}px`; }
-        function endDrag() { dragTarget = null; document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag); document.removeEventListener('mouseup', endDrag); document.removeEventListener('touchend', endDrag); }
-        
-        // ===================================
-        // START THE GAME
-        // ===================================
-        init();
+        loadAssets(init);
     </script>
 </body>
 </html>
